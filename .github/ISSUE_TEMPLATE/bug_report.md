@@ -25,7 +25,6 @@ assignees: ''
 - Phantom commit: <!-- git rev-parse HEAD -->
 - Python: <!-- python --version -->
 - OS: <!-- uname -a -->
-- Payment rail in `.env`: <!-- legacy_xmr / nowpayments / monero_pay / hybrid -->
 
 ## Logs
 

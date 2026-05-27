@@ -2,8 +2,8 @@
 # phantom-api — first-time dev setup
 # Usage: ./setup.sh
 #
-# Sets up a local dev environment. Full end-to-end operation requires a Phala
-# Redpill API key and a running Monero wallet RPC or MoneroPay daemon.
+# Sets up a local dev environment. Full end-to-end operation requires a
+# Redpill API key + NowPayments merchant credentials.
 set -euo pipefail
 
 echo "=== phantom-api setup ==="
@@ -111,7 +111,8 @@ if [ ! -f ".env" ]; then
     echo "Created .env from .env.example"
     echo "  Edit .env and set at minimum:"
     echo "    REDPILL_API_KEY=sk-..."
-    echo "    PAYMENT_PROVIDER=legacy_xmr  (or monero_pay / nowpayments / hybrid)"
+    echo "    NP_API_KEY=...        (NowPayments)"
+    echo "    NP_IPN_SECRET=...     (NowPayments dashboard)"
 fi
 
 # ─── Dev database ─────────────────────────────────────────────────────────────

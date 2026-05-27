@@ -72,7 +72,7 @@
     if (e.key === "Enter") { e.preventDefault(); _submitClaim(); }
   });
 
-  // ── Coin chooser (hybrid rail). Wraps every BUY click. Lets user pick
+  // ── Coin chooser. Wraps every BUY click. Lets user pick
   // XMR direct (MoneroPay) vs other crypto (NowPayments). If only one rail
   // is configured on the server side, both buttons just call /v1/purchase
   // with the chosen rail and the server picks for us.

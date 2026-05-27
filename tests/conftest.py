@@ -9,8 +9,6 @@ sys.path.insert(0, str(ROOT))
 
 # Tests must not depend on real .env. Set minimum required vars before any imports.
 os.environ.setdefault("REDPILL_API_KEY", "test-redpill-key")
-os.environ.setdefault("WALLET_ONION", "testonion.onion")
-os.environ.setdefault("WALLET_RPC_PASSWORD", "test-rpc-pass")
 os.environ.setdefault("PHANTOM_DB_PASSPHRASE", "test-db-pass-do-not-use-prod")
 os.environ.setdefault("DB_PATH", ":memory:")
 

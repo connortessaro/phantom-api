@@ -35,7 +35,7 @@ bold() { printf "\n\033[1m▸ %s\033[0m\n" "$*"; }
 
 if [[ $deploy_snapshot -eq 1 ]]; then
   bold "DigitalOcean snapshot"
-  doctl compute droplet-action snapshot ${PHANTOM_DROPLET_ID} \
+  doctl compute droplet-action snapshot 572051329 \
     --snapshot-name "phantom-$(date -u +%Y%m%d-%H%M)" --wait
   exit 0
 fi
@@ -55,11 +55,8 @@ if [[ $deploy_backend -eq 1 ]]; then
   rsync -avz \
     "$LOCAL_ROOT"/config.py \
     "$LOCAL_ROOT"/main.py \
-    "$LOCAL_ROOT"/payments.py \
     "$LOCAL_ROOT"/nowpayments.py \
-    "$LOCAL_ROOT"/monero_pay.py \
     "$LOCAL_ROOT"/db.py \
-    "$LOCAL_ROOT"/pricing.py \
     "$LOCAL_ROOT"/catalog.py \
     "$LOCAL_ROOT"/schema.sql \
     "$HOST:$TMP_DIR/"
@@ -69,9 +66,7 @@ if [[ $deploy_scripts -eq 1 ]]; then
   bold "Sync scripts"
   rsync -avz \
     "$LOCAL_ROOT"/scripts/*.py \
-    "$LOCAL_ROOT"/scripts/smoke-test-rails.sh \
     "$HOST:$TMP_DIR/scripts/"
-  # setup-monero-pay.sh runs on operator PC, not VPS — intentionally skipped.
 fi
 
 if [[ $deploy_frontend -eq 1 ]]; then

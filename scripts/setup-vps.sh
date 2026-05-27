@@ -117,29 +117,14 @@ else
     sudo -u phantom /opt/phantom-api/venv/bin/pip install -r /opt/phantom-api/requirements.txt
 fi
 
-# --- monero-wallet-rpc binary ---
-if ! command -v monero-wallet-rpc >/dev/null 2>&1; then
-    TMPDIR=$(mktemp -d)
-    curl -L -o "$TMPDIR/monero.tar.bz2" https://downloads.getmonero.org/cli/linux64
-    tar -xjf "$TMPDIR/monero.tar.bz2" -C "$TMPDIR"
-    install -m 0755 "$TMPDIR"/monero-x86_64-linux-gnu-*/monero-wallet-rpc /usr/local/bin/
-    install -m 0755 "$TMPDIR"/monero-x86_64-linux-gnu-*/monero-wallet-cli /usr/local/bin/
-    rm -rf "$TMPDIR"
-fi
-install -d -o phantom -g phantom -m 0700 /opt/phantom-api/wallet
-
 # --- systemd ---
-install -m 0644 /opt/phantom-api/systemd/monero-wallet-rpc.service /etc/systemd/system/
 install -m 0644 /opt/phantom-api/systemd/phantom-api.service /etc/systemd/system/
-install -m 0644 /opt/phantom-api/systemd/phantom-poller.service /etc/systemd/system/
 systemctl daemon-reload
-# None auto-start on boot — they require manual unlock.sh to write tmpfs secrets.
-systemctl enable phantom-poller.service
+# phantom-api does NOT auto-start on boot — requires manual unlock.sh to write
+# tmpfs secrets (SQLCipher passphrase + Redpill API key).
 
-# --- Tor ---
-systemctl enable --now tor
-echo "Verify Tor SOCKS:"
-curl --socks5-hostname 127.0.0.1:9050 -m 30 -s -o /dev/null -w "  check.torproject %{http_code}\n" https://check.torproject.org || true
+# --- Tor (optional: phantom Tor hidden service mirror) ---
+systemctl enable --now tor || true
 
 # --- Caddy ---
 install -m 0644 /opt/phantom-api/Caddyfile /etc/caddy/Caddyfile
@@ -149,10 +134,11 @@ echo
 echo "Setup complete."
 echo
 echo "Next steps:"
-echo " 1. Edit /opt/phantom-api/.env — set WALLET_ONION, WALLET_RPC_USER, PHALA_BUDGET_USD"
-echo " 2. SSH in as: ssh ${OPERATOR_USER}@<vps-ip>   (root login is now disabled)"
-echo " 3. Run scripts/unlock.sh — type DB passphrase, RPC password, Phala API key at prompts"
-echo " 4. Hourly backups: schedule /opt/phantom-api/scripts/backup-db.sh via cron"
+echo " 1. Edit /opt/phantom-api/.env — set REDPILL_API_KEY, NP_API_KEY, NP_IPN_SECRET, REDPILL_BUDGET_USD"
+echo " 2. Configure NowPayments dashboard (see RUNBOOK.md)"
+echo " 3. SSH in as: ssh ${OPERATOR_USER}@<vps-ip>   (root login is now disabled)"
+echo " 4. Run scripts/unlock.sh — type DB passphrase + Redpill API key at prompts"
+echo " 5. Hourly backups: schedule /opt/phantom-api/scripts/backup-db.py via cron"
 echo
 echo "Hardening summary:"
 echo "  - ufw: 22/80/443 inbound only"
