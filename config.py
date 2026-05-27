@@ -18,81 +18,28 @@ REDPILL_API_KEY = os.environ.get("REDPILL_API_KEY") or os.environ.get("PHALA_API
 if not REDPILL_API_KEY:
     raise KeyError("REDPILL_API_KEY (or legacy PHALA_API_KEY) must be set")
 
-# ─── Payment rails ────────────────────────────────────────────────────────────
-# PAYMENT_PROVIDER controls which rail(s) handle new purchases:
-#   "legacy_xmr"  - operator-PC wallet over Tor (oldest path, still works)
-#   "nowpayments" - NowPayments PSP only (multi-crypto, KYC operator)
-#   "monero_pay"  - MoneroPay daemon only (XMR direct, zero PSP)
-#   "hybrid"      - MoneroPay (XMR direct) + NowPayments (other coins).
-#                   Frontend picks rail via {"rail":"xmr"} or {"rail":"multi"} body field.
-PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "legacy_xmr")
-
-# NowPayments (multi-crypto PSP). Required for nowpayments + hybrid modes.
+# ─── Payment rail (NowPayments only) ─────────────────────────────────────────
+# Single PSP. Customer picks XMR-locked (0% surcharge) or multi-crypto (+5%)
+# via the `rail` body field on POST /v1/purchase. Both routes hit NowPayments;
+# the difference is `pay_currency` lock and the surcharge factor.
 NP_API_KEY        = os.environ.get("NP_API_KEY", "")
 NP_IPN_SECRET     = os.environ.get("NP_IPN_SECRET", "")
 NP_BASE           = os.environ.get("NP_BASE", "https://api.nowpayments.io/v1")
 NP_PAYOUT_CURRENCY = os.environ.get("NP_PAYOUT_CURRENCY", "xmr")
 
-# MoneroPay (self-hosted XMR daemon). Required for monero_pay + hybrid modes.
-# Daemon runs alongside monero-wallet-rpc on the operator PC. VPS reaches it
-# over Tor (set MONEROPAY_URL to http://<onion>:5000) or locally for dev.
-#
-# MoneroPay does NOT sign callbacks. Phantom authenticates them via per-
-# payment URL path tokens: callback_url is "{PUBLIC_BASE_URL}/v1/monero-pay/
-# callback/{payment_id}" where payment_id is a 16-byte token_urlsafe. The
-# daemon doesn't know payment_id ahead of time — it just echoes the URL
-# back. Triple-bind on receive: URL token == body description == DB row.
-MONEROPAY_URL     = os.environ.get("MONEROPAY_URL", "http://127.0.0.1:5000")
-MONEROPAY_USE_TOR = MONEROPAY_URL.startswith("http://") and ".onion" in MONEROPAY_URL
+if not NP_API_KEY or not NP_IPN_SECRET:
+    raise KeyError("NP_API_KEY and NP_IPN_SECRET must be set")
 
-# Multi-crypto rail markup. Applied on top of bundle/custom price when the
-# customer pays via NowPayments (not XMR direct). Covers:
-#  - NowPayments service fee (~1%)
-#  - Payout auto-conversion to XMR (~0.5%)
-#  - Crypto rate volatility within 10-min fixed-rate lock (~0.5%)
-#  - Refund / failed-payment buffer + convenience premium
-# Default 5: customer pays 1.05× sticker price; credit issued is unchanged.
-# Set to 0 to absorb fees fully (operator margin hit).
+# Multi-crypto rail markup. Applied on top of sticker price when the customer
+# picks the multi-crypto checkout (BTC/ETH/USDT/etc.). Covers NowPayments
+# service fee + conversion to XMR + rate volatility buffer. Default 5 means
+# customer pays 1.05× sticker; credit issued is unchanged. XMR rail bypasses
+# the markup entirely (sticker = sticker).
 MULTI_CRYPTO_SURCHARGE_PERCENT = int(os.environ.get("MULTI_CRYPTO_SURCHARGE_PERCENT", "5"))
 
 # Public base URL phantom advertises (used for IPN callbacks + redirect URLs
 # in NowPayments invoices). Must be reachable from the public internet.
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://api.phantom.codes")
-
-if PAYMENT_PROVIDER in ("nowpayments", "hybrid"):
-    if not NP_API_KEY or not NP_IPN_SECRET:
-        raise KeyError(
-            "NP_API_KEY and NP_IPN_SECRET must be set when "
-            f"PAYMENT_PROVIDER={PAYMENT_PROVIDER}"
-        )
-if PAYMENT_PROVIDER in ("monero_pay", "hybrid"):
-    if not MONEROPAY_URL:
-        raise KeyError(
-            "MONEROPAY_URL must be set when "
-            f"PAYMENT_PROVIDER={PAYMENT_PROVIDER}"
-        )
-
-# Wallet RPC location. Defaults to localhost (hot wallet on VPS).
-# Set WALLET_RPC_HOST to an .onion to switch to operator-PC-via-Tor mode.
-WALLET_RPC_HOST = os.environ.get("WALLET_RPC_HOST", "127.0.0.1")
-WALLET_RPC_PORT = int(os.environ.get("WALLET_RPC_PORT", "18083"))
-WALLET_RPC_URL = f"http://{WALLET_RPC_HOST}:{WALLET_RPC_PORT}/json_rpc"
-WALLET_USE_TOR = WALLET_RPC_HOST.endswith(".onion")
-WALLET_RPC_USER = os.environ.get("WALLET_RPC_USER", "phantom")
-# Required only when PAYMENT_PROVIDER=legacy_xmr (the self-hosted wallet rail).
-# Under nowpayments, no wallet RPC is reached at all; leave it empty.
-WALLET_RPC_PASSWORD = os.environ.get("WALLET_RPC_PASSWORD", "")
-if PAYMENT_PROVIDER == "legacy_xmr" and not WALLET_RPC_PASSWORD:
-    raise KeyError("WALLET_RPC_PASSWORD must be set when PAYMENT_PROVIDER=legacy_xmr")
-TOR_SOCKS_URL = os.environ.get("TOR_SOCKS_URL", "socks5://127.0.0.1:9050")
-
-# Hot/cold sweep config. COLD_ADDRESS receives funds from hot wallet when balance
-# crosses HOT_SWEEP_THRESHOLD_USD (computed against live XMR/USD price). Run via
-# cron: scripts/sweep-hot.sh. HOT_SWEEP_THRESHOLD_XMR is a hard floor used as
-# fallback if price fetch fails.
-COLD_ADDRESS = os.environ.get("COLD_ADDRESS", "")
-HOT_SWEEP_THRESHOLD_USD = os.environ.get("HOT_SWEEP_THRESHOLD_USD", "30")
-HOT_SWEEP_THRESHOLD_XMR = os.environ.get("HOT_SWEEP_THRESHOLD_XMR", "0.08363058")
 
 PAYMENT_EXPIRY_MINUTES = 60
 
@@ -183,32 +130,12 @@ MICRO = 1_000_000
 # Volume bonus pushes bigger upfront purchases (less wallet ops overhead).
 # All money values are integer micro-USD (1 USD = 1_000_000 micro-USD). Never use floats for money.
 BUNDLES = {
-    "test":   {"price_micro":      50_000, "credit_micro":      50_000, "validity_days": 1,   "confirmations":  1},   # stagenet smoke test only
-    "small":  {"price_micro":  10_000_000, "credit_micro":  10_000_000, "validity_days": 90,  "confirmations":  2},
-    "medium": {"price_micro":  50_000_000, "credit_micro":  55_000_000, "validity_days": 90,  "confirmations":  4},
-    "large":  {"price_micro": 200_000_000, "credit_micro": 230_000_000, "validity_days": 180, "confirmations":  6},
-    "whale":  {"price_micro": 500_000_000, "credit_micro": 600_000_000, "validity_days": 365, "confirmations": 10},
+    "test":   {"price_micro":      50_000, "credit_micro":      50_000, "validity_days": 1},   # smoke test only
+    "small":  {"price_micro":  10_000_000, "credit_micro":  10_000_000, "validity_days": 90},
+    "medium": {"price_micro":  50_000_000, "credit_micro":  55_000_000, "validity_days": 90},
+    "large":  {"price_micro": 200_000_000, "credit_micro": 230_000_000, "validity_days": 180},
+    "whale":  {"price_micro": 500_000_000, "credit_micro": 600_000_000, "validity_days": 365},
 }
-
-
-def confirmations_for_credit(credit_micro: int) -> int:
-    """Tier confirmations by credit size (USD). Block ≈ 2 min, so confs ≈ wait min / 2.
-    Smaller buys clear faster; large buys take the full 10-conf finality window."""
-    usd = credit_micro / MICRO
-    if usd < 5:    return 1
-    if usd < 50:   return 2
-    if usd < 200:  return 4
-    if usd < 500:  return 6
-    return 10
-
-
-def confirmations_for_payment(bundle_name: str, credit_micro: int) -> int:
-    """Resolve confs from stored payment row. Bundle wins if known; else fall
-    back to credit-size tier (covers 'custom' purchases + unknown bundles)."""
-    b = BUNDLES.get(bundle_name)
-    if b and "confirmations" in b:
-        return int(b["confirmations"])
-    return confirmations_for_credit(credit_micro)
 
 # All TEE-attested via Phala (Intel TDX + NVIDIA CC) and routed through Redpill.
 # Pricing = USD per 1M tokens at upstream wholesale. User-facing price = these × MARKUP_NUM/100.

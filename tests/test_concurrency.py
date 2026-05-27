@@ -55,7 +55,7 @@ async def _seed_active_key(db, plaintext: str, balance: int = 10_000_000):
 @pytest.mark.asyncio
 async def test_claim_and_issue_returns_key_exactly_once(fresh_db):
     """Even with 20 concurrent callers, only one wins the UPDATE and gets a key."""
-    import payments
+    import db as payments
     pid = "pay-once-" + secrets.token_hex(4)
     await _seed_ready_payment(fresh_db, pid)
 
@@ -72,7 +72,7 @@ async def test_claim_and_issue_returns_key_exactly_once(fresh_db):
 
 @pytest.mark.asyncio
 async def test_claim_and_issue_creates_exactly_one_api_key(fresh_db):
-    import payments
+    import db as payments
     pid = "pay-key-" + secrets.token_hex(4)
     await _seed_ready_payment(fresh_db, pid, credit_micro=50_000_000)
 
@@ -85,7 +85,7 @@ async def test_claim_and_issue_creates_exactly_one_api_key(fresh_db):
 
 @pytest.mark.asyncio
 async def test_claim_marks_payment_completed(fresh_db):
-    import payments
+    import db as payments
     pid = "pay-complete-" + secrets.token_hex(4)
     await _seed_ready_payment(fresh_db, pid)
 
@@ -101,7 +101,7 @@ async def test_claim_marks_payment_completed(fresh_db):
 @pytest.mark.asyncio
 async def test_claim_on_non_ready_payment_returns_none(fresh_db):
     """Pending / expired payments must not produce keys."""
-    import payments
+    import db as payments
     pid = "pay-pending-" + secrets.token_hex(4)
     async with fresh_db._lock:
         fresh_db.conn().execute(

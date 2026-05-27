@@ -10,17 +10,14 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
 import db
-import payments
 import nowpayments
-import monero_pay
-import pricing
 import catalog
 from config import (
     DB_PATH, REDPILL_API_BASE, REDPILL_API_KEY, BUNDLES,
     cost_micro_usd, MICRO, REDPILL_BUDGET_MICRO,
     CUSTOM_MIN_MICRO, CUSTOM_MAX_MICRO, CUSTOM_VALIDITY_DAYS,
     IMAGE_MODELS, IMAGE_ALLOWED_SIZES, IMAGE_MAX_N, image_cost_micro_usd,
-    PAYMENT_PROVIDER, PAYMENT_EXPIRY_MINUTES,
+    PAYMENT_EXPIRY_MINUTES,
 )
 
 logging.basicConfig(level=logging.WARNING,
@@ -130,12 +127,8 @@ async def safe_exception_handler(request, exc):
 @app.get("/health")
 async def health():
     """Public health endpoint. Returns service state booleans only — no internal
-    addresses, no balances, no key counts. Safe to expose.
-
-    Wallet check only runs under PAYMENT_PROVIDER=legacy_xmr — the new
-    NowPayments rail doesn't reach a local wallet daemon, so health-checking
-    it would falsely report degraded forever. Under nowpayments rail we still
-    surface a `payments` field reflecting NowPayments API reachability."""
+    addresses, no balances, no key counts. Safe to expose. Pings NowPayments
+    /status to confirm the payment rail is reachable."""
     db_ok = True
     try:
         async with db._lock:
@@ -144,37 +137,17 @@ async def health():
         db_ok = False
 
     components = {"db": db_ok, "models": len(catalog.all_models())}
-    if PAYMENT_PROVIDER == "nowpayments":
-        # Best-effort reachability check, 3s budget.
-        np_ok = False
-        try:
-            async with httpx.AsyncClient(timeout=3) as c:
-                r = await c.get(f"{REDPILL_API_BASE.rsplit('/v1', 1)[0]}/health",
-                                follow_redirects=False)
-                # any 2xx/3xx/4xx response = endpoint reachable; only TCP/5xx fail
-                np_ok = r.status_code < 500
-        except Exception:
-            np_ok = False
-        # Real ping the NP API status:
-        try:
-            from config import NP_API_KEY, NP_BASE
-            async with httpx.AsyncClient(timeout=3) as c:
-                r = await c.get(f"{NP_BASE}/status",
-                                headers={"x-api-key": NP_API_KEY})
-                np_ok = r.status_code == 200
-        except Exception:
-            pass
-        components["payments"] = np_ok
-        ok = db_ok and np_ok
-    else:
-        wallet_ok = False
-        try:
-            h = await payments.rpc("get_height", {})
-            wallet_ok = int(h.get("height", 0)) > 0
-        except Exception:
-            pass
-        components["wallet"] = wallet_ok
-        ok = db_ok and wallet_ok
+    np_ok = False
+    try:
+        from config import NP_API_KEY, NP_BASE
+        async with httpx.AsyncClient(timeout=3) as c:
+            r = await c.get(f"{NP_BASE}/status",
+                            headers={"x-api-key": NP_API_KEY})
+            np_ok = r.status_code == 200
+    except Exception:
+        pass
+    components["payments"] = np_ok
+    ok = db_ok and np_ok
 
     return {"status": "ok" if ok else "degraded", **components}
 
@@ -346,36 +319,18 @@ async def purchase(request: Request):
             raise HTTPException(429, "too many open purchases — finish or wait for prior orders to expire")
 
     # Rail selection. Client picks:
-    #   {"rail":"xmr"}   → NowPayments invoice locked to XMR. No surcharge.
-    #                       (Operator absorbs the small NowPayments fee on
-    #                       XMR to keep "$10 = $10" UX for privacy-first
-    #                       buyers. MoneroPay direct rail is a future swap.)
-    #   {"rail":"multi"} → NowPayments multi-crypto checkout. 5% surcharge.
-    # Absent → multi (default).
+    #   {"rail":"xmr"}   → NowPayments invoice locked to XMR, sticker price.
+    #   {"rail":"multi"} → NowPayments multi-crypto checkout, +surcharge.
+    # Default = multi.
     rail = (body.get("rail") or "").strip().lower()
     is_xmr_rail = (rail == "xmr")
 
     try:
-        if PAYMENT_PROVIDER == "hybrid":
-            # Hybrid mode reserved for MoneroPay-direct future: rail=xmr
-            # routes to the self-hosted daemon, rail=multi to NowPayments.
-            if is_xmr_rail:
-                return await _purchase_monero_pay(label, price_micro, credit_micro, validity_days)
-            return await _purchase_nowpayments(
-                label, price_micro, credit_micro, validity_days,
-                apply_surcharge=True,
-            )
-        if PAYMENT_PROVIDER == "monero_pay":
-            return await _purchase_monero_pay(label, price_micro, credit_micro, validity_days)
-        if PAYMENT_PROVIDER == "nowpayments":
-            return await _purchase_nowpayments(
-                label, price_micro, credit_micro, validity_days,
-                apply_surcharge=(not is_xmr_rail),
-                pay_currency=("xmr" if is_xmr_rail else None),
-            )
-        # Legacy XMR-direct rail — operator wallet over Tor.
-        xmr_usd = await pricing.xmr_per_usd()
-        return await payments.create_payment(label, price_micro, credit_micro, validity_days, xmr_usd)
+        return await _purchase_nowpayments(
+            label, price_micro, credit_micro, validity_days,
+            apply_surcharge=(not is_xmr_rail),
+            pay_currency=("xmr" if is_xmr_rail else None),
+        )
     except Exception:
         if ip_hash:
             await _pending_ip_release(ip_hash)
@@ -438,106 +393,6 @@ async def _purchase_nowpayments(
         "pay_currency":   pay_currency,
         "expires_at":     expires_at,
     }
-
-
-async def _purchase_monero_pay(label, price_micro, credit_micro, validity_days):
-    """Mint a MoneroPay subaddress + persist the pending row. Returns the
-    JSON the frontend renders as an in-page QR (zero redirect — same shape
-    as legacy XMR rail). MoneroPay daemon callbacks our webhook on payment
-    events.
-
-    Note: MoneroPay handles confirmation tracking internally. We do NOT
-    pass a required_confs threshold; the daemon's `complete` flag on the
-    callback IS our 'ready' signal (fires once unlocked >= expected).
-    """
-    import secrets as _s
-    from decimal import Decimal
-    from datetime import datetime, timedelta, timezone
-
-    payment_id = _s.token_urlsafe(16)
-    xmr_per_usd = await pricing.xmr_per_usd()
-    if xmr_per_usd <= 0:
-        raise HTTPException(503, "pricing unavailable")
-    usd_amount = Decimal(price_micro) / Decimal(MICRO)
-    xmr_amount = (usd_amount * Decimal(str(xmr_per_usd))).quantize(Decimal("0.000000000001"))
-    invoice = await monero_pay.create_receive(payment_id, xmr_amount)
-    now = datetime.now(timezone.utc)
-    expires_at = (now + timedelta(minutes=PAYMENT_EXPIRY_MINUTES)).isoformat()
-    await db.create_monero_pay_payment(
-        payment_id, label, price_micro, credit_micro, validity_days,
-        xmr_address=invoice["address"],
-        xmr_amount_decimal=str(xmr_amount),
-        expires_at_iso=expires_at,
-    )
-    # Same response shape as legacy XMR rail so purchase.js renders without
-    # change. No checkout_url → in-page QR + poll.
-    return {
-        "payment_id":   payment_id,
-        "xmr_address":  invoice["address"],
-        "xmr_amount":   str(xmr_amount),
-        "bundle":       label,
-        "credit_usd":   round(credit_micro / MICRO, 6),
-        "expires_at":   expires_at,
-        "rail":         "monero_pay",
-    }
-
-
-@app.post("/v1/monero-pay/callback/{token}")
-@limiter.limit("120/minute")
-async def monero_pay_callback(token: str, request: Request):
-    """MoneroPay daemon webhook. MoneroPay does not sign callbacks; instead
-    phantom authenticates each callback by per-payment URL path token.
-
-    The `token` here equals the phantom `payment_id` we registered with
-    MoneroPay when minting the subaddress. It's a 16-byte token_urlsafe —
-    unguessable. Triple-bind verification:
-
-      1. URL path `token` must exist as a `rail='monero_pay'` payment row
-      2. Body `description` must equal the same token
-      3. Row must not already be terminal (completed/expired)
-
-    Any mismatch → 401. Daemon will retry but only with the genuine token.
-
-    Idempotent on terminal states so duplicate retries don't crash."""
-    try:
-        import json as _json
-        data = _json.loads(await request.body())
-    except (ValueError, TypeError):
-        raise HTTPException(400, "bad callback body")
-
-    parsed = monero_pay.parse_callback(data)
-
-    # Auth: token in URL path must match description in body.
-    if parsed["description"] != token:
-        logging.warning(
-            f"monero_pay callback token mismatch: url={token[:8]}... "
-            f"description={parsed['description'][:8]}..."
-        )
-        raise HTTPException(401, "callback token mismatch")
-
-    # Auth: token must correspond to a known pending monero_pay payment.
-    async with db._lock:
-        row = db.conn().execute(
-            "SELECT status FROM payments "
-            "WHERE payment_id = ? AND rail = 'monero_pay'",
-            (token,),
-        ).fetchone()
-    if not row:
-        # Don't 404 — daemon would retry indefinitely. Acknowledge + log.
-        logging.warning(f"monero_pay callback for unknown payment_id={token[:8]}...")
-        return {"ok": True, "ignored": "unknown payment_id"}
-
-    current_status = row[0]
-    if current_status in ("completed", "expired"):
-        return {"ok": True, "ignored": f"already {current_status}"}
-
-    phantom_status, _issue = monero_pay.map_status(parsed)
-
-    await db.update_monero_pay_payment_status(
-        token, phantom_status,
-        received_pico=str(parsed["received_pico"]),
-    )
-    return {"ok": True, "phantom_status": phantom_status}
 
 
 @app.post("/v1/nowpayments/ipn")
@@ -608,58 +463,28 @@ async def nowpayments_ipn(request: Request):
     return {"ok": True, "phantom_status": phantom_status}
 
 
-@app.get("/v1/purchase/{payment_id}/qr.svg")
-@limiter.limit("60/minute")
-async def purchase_qr(payment_id: str, request: Request):
-    """Return a Monero URI QR code SVG for the payment. Same-origin only — no CDN."""
-    import qrcode
-    import qrcode.image.svg
-    import io
-    async with db._lock:
-        row = db.conn().execute(
-            "SELECT xmr_address, xmr_amount, status FROM payments WHERE payment_id = ?",
-            (payment_id,),
-        ).fetchone()
-    if not row:
-        raise HTTPException(404, "unknown payment")
-    addr, amount, status = row
-    if status not in ("pending", "confirming"):
-        raise HTTPException(410, "payment not awaiting funds")
-    uri = f"monero:{addr}?tx_amount={amount}"
-    factory = qrcode.image.svg.SvgImage
-    img = qrcode.make(uri, image_factory=factory, box_size=8, border=2)
-    buf = io.BytesIO()
-    img.save(buf)
-    from fastapi.responses import Response
-    return Response(content=buf.getvalue(), media_type="image/svg+xml")
-
-
 @app.get("/v1/purchase/{payment_id}/status")
 @limiter.limit("60/minute")
 async def purchase_status(payment_id: str, request: Request):
     async with db._lock:
         row = db.conn().execute(
-            "SELECT status, xmr_address, xmr_amount, bundle_name, credit_micro_usd, expires_at "
+            "SELECT status, bundle_name, credit_micro_usd, expires_at "
             "FROM payments WHERE payment_id = ?",
             (payment_id,),
         ).fetchone()
     if not row:
         raise HTTPException(404, "unknown payment")
-    status, addr, amount, bundle, credit_micro, expires = row
+    status, bundle, credit_micro, expires = row
 
     if status == "ready":
-        plaintext = await payments.claim_and_issue(payment_id)
+        plaintext = await db.claim_and_issue(payment_id)
         if plaintext:
             return {"status": "completed", "api_key": plaintext, "shown_once": True}
         return {"status": "completed", "api_key": None}
 
-    from config import confirmations_for_payment
     return {
         "status": status,
-        "xmr_address": addr,
-        "xmr_amount": amount,
         "bundle": bundle,
-        "required_confirmations": confirmations_for_payment(bundle, int(credit_micro)),
         "expires_at": expires,
     }
 

@@ -62,7 +62,7 @@ ufw --force enable
 # --- operator sudo user ---
 # Must exist BEFORE disabling root SSH or you'll be locked out.
 # OPERATOR_USER env var defaults to "operator". Reuses root's authorized_keys.
-OPERATOR_USER="${OPERATOR_USER:-operator}"
+OPERATOR_USER="${OPERATOR_USER:-connor}"
 if ! id -u "$OPERATOR_USER" &>/dev/null; then
     # --user-group creates matching group; avoids collision with system "operator" group
     useradd --create-home --shell /bin/bash --user-group --groups sudo "$OPERATOR_USER"
@@ -149,7 +149,7 @@ echo
 echo "Setup complete."
 echo
 echo "Next steps:"
-echo " 1. Edit /opt/phantom-api/.env — set WALLET_RPC_HOST, WALLET_RPC_USER, REDPILL_BUDGET_USD"
+echo " 1. Edit /opt/phantom-api/.env — set WALLET_ONION, WALLET_RPC_USER, PHALA_BUDGET_USD"
 echo " 2. SSH in as: ssh ${OPERATOR_USER}@<vps-ip>   (root login is now disabled)"
 echo " 3. Run scripts/unlock.sh — type DB passphrase, RPC password, Phala API key at prompts"
 echo " 4. Hourly backups: schedule /opt/phantom-api/scripts/backup-db.sh via cron"

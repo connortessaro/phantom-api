@@ -35,7 +35,7 @@ bold() { printf "\n\033[1m▸ %s\033[0m\n" "$*"; }
 
 if [[ $deploy_snapshot -eq 1 ]]; then
   bold "DigitalOcean snapshot"
-  doctl compute droplet-action snapshot "${PHANTOM_DROPLET_ID:?PHANTOM_DROPLET_ID not set}" \
+  doctl compute droplet-action snapshot ${PHANTOM_DROPLET_ID} \
     --snapshot-name "phantom-$(date -u +%Y%m%d-%H%M)" --wait
   exit 0
 fi
@@ -126,7 +126,7 @@ if [[ $deploy_caddy -eq 1 ]]; then
 fi
 
 bold "Verify"
-out=$(curl -s --max-time 10 "https://api.${PHANTOM_DOMAIN:-phantom.codes}/health" || echo "{}")
+out=$(curl -s --max-time 10 https://api.phantom.codes/health || echo "{}")
 echo "  /health: $out"
 if [[ "$out" != *'"status":"ok"'* ]]; then
   echo "WARN: /health not ok. Investigate." >&2

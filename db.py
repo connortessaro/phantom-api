@@ -59,10 +59,6 @@ async def init_db(path: str):
         "pay_amount":         "TEXT",
         "outcome_amount":     "TEXT",
         "parent_payment_id":  "TEXT",
-        # MoneroPay (XMR-direct hybrid rail):
-        "rail":               "TEXT",  # 'legacy_xmr' | 'nowpayments' | 'monero_pay'
-        "mp_received_pico":   "TEXT",  # piconero received so far (decimal string)
-        "mp_required_confs":  "INTEGER",
     }
     for col, col_type in np_columns.items():
         if col not in existing_cols:
@@ -157,94 +153,6 @@ async def create_np_payment(
         _conn.commit()
 
 
-async def create_monero_pay_payment(
-    payment_id: str,
-    label: str,
-    price_micro: int,
-    credit_micro: int,
-    validity_days: int,
-    *,
-    xmr_address: str,
-    xmr_amount_decimal: str,
-    expires_at_iso: str,
-) -> None:
-    """Persist a freshly-minted MoneroPay subaddress. Reuses xmr_address +
-    xmr_amount columns from the legacy rail (same shape). rail='monero_pay'
-    distinguishes it from legacy_xmr rows so the callback can find it.
-
-    Note: MoneroPay's daemon handles confirmation tracking. We do not store
-    a required_confs threshold — the daemon's `complete` flag on the
-    callback signals 'fully paid + unlocked'."""
-    now_iso = datetime.now(timezone.utc).isoformat()
-    async with _lock:
-        _conn.execute(
-            "INSERT INTO payments (payment_id, xmr_address, xmr_subaddr_index, "
-            "  xmr_amount, credit_micro_usd, bundle_name, validity_days, "
-            "  status, created_at, expires_at, rail, "
-            "  mp_received_pico, pay_currency) "
-            "VALUES (?, ?, 0, ?, ?, ?, ?, 'pending', ?, ?, 'monero_pay', '0', 'xmr')",
-            (
-                payment_id,
-                xmr_address,
-                xmr_amount_decimal,
-                credit_micro,
-                label,
-                validity_days,
-                now_iso,
-                expires_at_iso,
-            ),
-        )
-        _conn.commit()
-
-
-async def update_monero_pay_payment_status(
-    payment_id: str,
-    new_status: str,
-    *,
-    received_pico: str | None = None,
-) -> bool:
-    """Move a MoneroPay-tracked payment to a new state. Same forward-only
-    semantics as NowPayments version. Refuses to leave terminal states.
-    Returns True if a row was updated."""
-    if new_status not in ("pending", "confirming", "ready", "expired"):
-        return False
-    sets = ["status = ?"]
-    params: list = [new_status]
-    if received_pico is not None:
-        sets.append("mp_received_pico = ?")
-        params.append(received_pico)
-    params.append(payment_id)
-    where = "payment_id = ? AND status NOT IN ('completed', 'expired') AND rail = 'monero_pay'"
-    sql = f"UPDATE payments SET {', '.join(sets)} WHERE {where}"
-    async with _lock:
-        cur = _conn.execute(sql, params)
-        _conn.commit()
-    return cur.rowcount > 0
-
-
-async def get_payment_by_address(xmr_address: str) -> dict | None:
-    """Look up a payment by subaddress (MoneroPay callback path). Returns the
-    full row as a dict or None if no matching row. Only returns rail='monero_pay'
-    rows to avoid leaking legacy-rail payments via callback."""
-    async with _lock:
-        row = _conn.execute(
-            "SELECT payment_id, status, xmr_amount, credit_micro_usd, "
-            "  bundle_name, mp_required_confs FROM payments "
-            "WHERE xmr_address = ? AND rail = 'monero_pay'",
-            (xmr_address,),
-        ).fetchone()
-    if not row:
-        return None
-    return {
-        "payment_id":         row[0],
-        "status":             row[1],
-        "xmr_amount":         row[2],
-        "credit_micro_usd":   row[3],
-        "bundle_name":        row[4],
-        "mp_required_confs":  row[5],
-    }
-
-
 async def update_np_payment_status(
     payment_id: str,
     new_status: str,
@@ -292,6 +200,45 @@ async def update_np_payment_status(
         cur = _conn.execute(sql, params)
         _conn.commit()
     return cur.rowcount > 0
+
+
+async def claim_and_issue(payment_id: str) -> str | None:
+    """Atomic ready→completed transition + api_keys insert. Returns plaintext
+    key exactly once, or None if the row isn't in 'ready' (either still pending
+    or already claimed). BEGIN IMMEDIATE so a failure rolls back both UPDATE
+    and INSERT atomically."""
+    from datetime import timedelta
+    import secrets as _s
+    plaintext = "sk-" + _s.token_urlsafe(48)
+    key_h = hash_key(plaintext)
+    now = datetime.now(timezone.utc)
+    async with _lock:
+        try:
+            _conn.execute("BEGIN IMMEDIATE")
+            cur = _conn.execute(
+                "UPDATE payments SET status = 'completed', key_hash = ?, confirmed_at = ? "
+                "WHERE payment_id = ? AND status = 'ready'",
+                (key_h, now.isoformat(), payment_id),
+            )
+            if cur.rowcount == 0:
+                _conn.execute("ROLLBACK")
+                return None
+            row = _conn.execute(
+                "SELECT credit_micro_usd, validity_days FROM payments WHERE payment_id = ?",
+                (payment_id,),
+            ).fetchone()
+            credit_micro, validity = row
+            expires = (now + timedelta(days=int(validity))).isoformat()
+            _conn.execute(
+                "INSERT INTO api_keys (key_hash, credit_balance, credit_spent, created_at, expires_at, is_active) "
+                "VALUES (?, ?, 0, ?, ?, 1)",
+                (key_h, credit_micro, now.isoformat(), expires),
+            )
+            _conn.execute("COMMIT")
+        except Exception:
+            _conn.execute("ROLLBACK")
+            raise
+    return plaintext
 
 
 async def rotate_key(old_hash: str) -> str | None:

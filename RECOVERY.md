@@ -83,12 +83,12 @@ If any of these are missing, fix that first. Pre-launch checklist at the bottom.
 
 1. Confirm operator PC is on and Tor is running:
    ```bash
-   ssh your-user@operator-pc 'brew services list | grep tor'
+   ssh operator@operator-pc 'brew services list | grep tor'
    ```
 2. If wallet-rpc daemon died, restart:
    ```bash
    monero-wallet-rpc \
-     --wallet-file $HOME/.phantom-wallet/phantom \
+     --wallet-file /Users/<operator>/Monero/wallets/phantom/phantom \
      --rpc-bind-port 18083 \
      --rpc-login phantom:<password> \
      --daemon-address node.community.rino.io:18081 \
@@ -141,9 +141,9 @@ If any of these are missing, fix that first. Pre-launch checklist at the bottom.
 **Steps:**
 
 1. DigitalOcean web console → droplet → "Console" → boot into recovery mode.
-2. Mount root partition, add new SSH key to `/root/.ssh/authorized_keys` and `/home/your-user/.ssh/authorized_keys`.
+2. Mount root partition, add new SSH key to `/root/.ssh/authorized_keys` and `/home/connor/.ssh/authorized_keys`.
 3. Reboot. SSH back in with the new key.
-4. Re-disable root login per `scripts/setup-vps.sh` SSH hardening if you used root for the recovery shim.
+4. Re-disable root login per CLAUDE.md SSH hardening if you used root for the recovery shim.
 
 ---
 

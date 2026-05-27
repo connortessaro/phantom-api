@@ -34,10 +34,9 @@ cat "$OUTDIR/01-usage.json"; echo
 
 bold "2. Models catalog (/v1/models) — saving full, showing phala/* + openai/gpt-oss-* only"
 curl -fsS "$BASE/models" -H "$AUTH" -o "$OUTDIR/02-models.json"
-MODELS_JSON="$OUTDIR/02-models.json"
-python3 - "$MODELS_JSON" <<'PY'
-import json, sys
-d = json.load(open(sys.argv[1]))
+python3 - <<'PY'
+import json
+d = json.load(open("notes/phase-0-output/02-models.json"))
 for m in d.get("data", []):
     if m["id"].startswith("phala/") or "gpt-oss" in m["id"]:
         p = m.get("pricing", {})

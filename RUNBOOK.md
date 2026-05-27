@@ -29,7 +29,7 @@ Operational checklist. Pre-launch, deploy, day-2 ops.
   - `WALLET_RPC_USER=phantom`
   - `TOR_SOCKS_URL=socks5://127.0.0.1:9050`
   - `DB_PATH=/opt/phantom-api/data/phantom.db`
-  - `REDPILL_BUDGET_USD=<your Phala balance × 0.5>`
+  - `PHALA_BUDGET_USD=<your Phala balance × 0.5>`
   - `CUSTOM_MIN_USD=1`
   - `CUSTOM_MAX_USD=1000`
 - [ ] Caddyfile uses `phantom.codes` (apex frontend + API) and `api.phantom.codes` (API-only). Edit both blocks if domain changes.
@@ -92,7 +92,7 @@ Mitigations:
 
 ### Phala balance monitoring
 
-Manual: check Phala dashboard weekly. Top up when approaching `REDPILL_BUDGET_USD`.
+Manual: check Phala dashboard weekly. Top up when approaching `PHALA_BUDGET_USD`.
 
 Automated: scrape Phala usage (when their `/v1/usage` works), alert when balance < 2× outstanding customer credit.
 
@@ -102,7 +102,7 @@ sqlite3 /opt/phantom-api/data/phantom.db \
   "SELECT SUM(credit_balance) FROM api_keys WHERE is_active=1"
 ```
 
-Compare to Phala balance. Refuse new sales by raising `REDPILL_BUDGET_USD` ceiling DOWN if necessary.
+Compare to Phala balance. Refuse new sales by raising `PHALA_BUDGET_USD` ceiling DOWN if necessary.
 
 ### Sweep schedule
 

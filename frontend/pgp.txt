@@ -1,11 +1,11 @@
-Replace this file with your own PGP public key.
+-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-Generate one:
-  gpg --full-generate-key          # RSA 4096 or Ed25519
-  gpg --armor --export YOUR_KEY_ID > frontend/pgp.txt
+Replace this file with your own PGP public key block before publishing.
+Generate one with:  gpg --quick-generate-key "Phantom Operator <ops@your-domain.com>" rsa4096 default 0
+Export with:        gpg --armor --export <YOUR-FINGERPRINT> > frontend/pgp.txt
+Then update the fingerprint references in:
+  - frontend/terms.html
+  - frontend/docs.html
+  - SECURITY.md
 
-Publish the fingerprint in frontend/terms.html and frontend/docs.html
-where <YOUR-PGP-FINGERPRINT> appears.
-
-The PGP key is how users send encrypted abuse reports and contact the operator
-without creating plaintext logs.
+-----END PGP PUBLIC KEY BLOCK-----
