@@ -1,0 +1,55 @@
+[Unit]
+Description=Monero hot wallet RPC (phantom-hot)
+After=network-online.target tor.service
+Wants=network-online.target
+# Won't start until unlock.sh writes the wallet password to tmpfs.
+ConditionPathExists=/run/phantom/phantom-wallet-pw
+
+[Service]
+Type=simple
+User=phantom
+Group=phantom
+WorkingDirectory=/opt/phantom-api/wallet
+# Remote node reached via Tor SOCKS for privacy. Use --untrusted-daemon since
+# we don't control the remote monerod and shouldn't trust its block claims for
+# anything beyond tx confirmation counting.
+ExecStart=/usr/local/bin/monero-wallet-rpc \
+    --wallet-file /opt/phantom-api/wallet/phantom-hot \
+    --password-file /run/phantom/phantom-wallet-pw \
+    --rpc-bind-ip 127.0.0.1 \
+    --rpc-bind-port 18083 \
+    --rpc-login phantom:${WALLET_RPC_PASSWORD} \
+    --daemon-address node.sethforprivacy.com:18089 \
+    --proxy 127.0.0.1:9050 \
+    --daemon-ssl-allow-any-cert \
+    --untrusted-daemon \
+    --shared-ringdb-dir /opt/phantom-api/wallet/ringdb \
+    --log-level 1 \
+    --log-file /opt/phantom-api/wallet/monero-wallet-rpc.log \
+    --max-log-file-size 10485760 \
+    --max-log-files 3 \
+    --no-initial-sync
+EnvironmentFile=/run/phantom/phantom-secrets.env
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Sandboxing — wallet RPC has spend key access. Lock it down.
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/phantom-api/wallet /run/phantom
+ProtectHome=true
+NoNewPrivileges=true
+RestrictNamespaces=true
+# Hide /proc/<pid>/cmdline from other users. WALLET_RPC_PASSWORD ends up on
+# argv ("--rpc-login phantom:${WALLET_RPC_PASSWORD}") because monero-wallet-rpc
+# does not support --rpc-login-file. Without ProtectProc=invisible any local
+# user could read the password via `ps auxe` / /proc/<pid>/cmdline. invisible
+# restricts /proc visibility so only this unit's UID + root see it.
+# Requires systemd >= 247 (Ubuntu 22.04 ships 249).
+ProtectProc=invisible
+ProcSubset=pid
+
+[Install]
+WantedBy=multi-user.target

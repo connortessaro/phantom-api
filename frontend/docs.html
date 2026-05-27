@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0a0a0c">
+<title>PHANTOM // docs</title>
+<meta name="description" content="Phantom API documentation. OpenAI-compatible. Curated TEE-attested models. Pay any major crypto.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://phantom.codes/docs.html">
+<meta property="og:title" content="PHANTOM // docs">
+<meta property="og:description" content="OpenAI-compatible API. Curated TEE-attested models. Pay XMR, BTC, ETH, USDT, USDC.">
+<meta property="og:image" content="https://phantom.codes/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PHANTOM // docs">
+<meta name="twitter:description" content="OpenAI-compatible API. Curated TEE-attested models. Pay any major crypto.">
+<meta name="twitter:image" content="https://phantom.codes/og.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="canonical" href="https://phantom.codes/docs.html">
+<link rel="stylesheet" href="/style.css?v=8">
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div class="scanlines" aria-hidden="true"></div>
+
+<!-- ─── Top bar ─── -->
+<nav class="topbar">
+  <a href="/" class="brand" aria-label="Phantom home">
+    <svg class="logo-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z"
+            fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"/>
+      <rect x="6.5" y="10.5" width="3.5" height="1.2" fill="currentColor"/>
+      <rect x="14" y="10.5" width="3.5" height="1.2" fill="currentColor"/>
+      <path d="M10 15 L14 15" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+    <span class="brand-text">PHANTOM</span>
+  </a>
+  <div class="navlinks">
+    <a href="/#pricing">pricing</a>
+    <a href="/#models">models</a>
+    <a href="/#trust">trust</a>
+    <a href="/docs.html">docs</a>
+  </div>
+</nav>
+
+<!-- ─── Docs layout ─── -->
+<div class="docs-layout">
+
+  <!-- Sidebar TOC -->
+  <aside class="docs-toc">
+    <p class="toc-head">// CONTENTS</p>
+    <ul>
+      <li><a href="#quickstart">Quick start</a></li>
+      <li><a href="#endpoints">Endpoints</a></li>
+      <li><a href="#streaming">Streaming</a></li>
+      <li><a href="#images">Image generation</a></li>
+      <li><a href="#attestation">Attestation</a></li>
+      <li><a href="#integrations">Integrations</a></li>
+      <li><a href="#rate-limits">Rate limits</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <main class="docs-main" id="main-content">
+
+    <header class="docs-header">
+      <p class="section-eyebrow">// DOCUMENTATION</p>
+      <h1 class="docs-h1">PHANTOM API</h1>
+      <p class="docs-lead">OpenAI-compatible. <em>Anonymous payment.</em> Hardware-attested inference.</p>
+    </header>
+
+    <!-- ─── Connection info callout ─── -->
+    <div class="callout callout-info" style="border:1px solid var(--c-line,#444); padding:1.1rem 1.3rem; margin:1.4rem 0; background:rgba(255,255,255,0.02);">
+      <p class="section-eyebrow" style="margin-top:0;">// CONNECTION</p>
+      <table style="border-collapse:collapse; width:100%; font-size:0.95rem;">
+        <tr>
+          <td style="padding:0.35rem 0; vertical-align:top; width:140px; opacity:0.7;">Base URL</td>
+          <td style="padding:0.35rem 0;"><code>https://api.phantom.codes/v1</code></td>
+        </tr>
+        <tr>
+          <td style="padding:0.35rem 0; vertical-align:top; opacity:0.7;">Tor (.onion)</td>
+          <td style="padding:0.35rem 0; word-break:break-all;"><code>http://<your-onion-here.onion>/v1</code></td>
+        </tr>
+        <tr>
+          <td style="padding:0.35rem 0; vertical-align:top; opacity:0.7;">Auth header</td>
+          <td style="padding:0.35rem 0;"><code>Authorization: Bearer sk-...</code></td>
+        </tr>
+        <tr>
+          <td style="padding:0.35rem 0; vertical-align:top; opacity:0.7;">Get a key</td>
+          <td style="padding:0.35rem 0;">Buy credit at <a href="/">phantom.codes</a>. Pay XMR / BTC / ETH / USDT / USDC / LTC / SOL / DOGE. Receive <code>sk-...</code> once.</td>
+        </tr>
+        <tr>
+          <td style="padding:0.35rem 0; vertical-align:top; opacity:0.7;">Compatibility</td>
+          <td style="padding:0.35rem 0;">Drop-in OpenAI replacement. Point any OpenAI SDK at the Base URL above.</td>
+        </tr>
+      </table>
+    </div>
+
+    <hr class="rule">
+
+    <!-- ─── Quick start ─── -->
+    <section id="quickstart">
+      <p class="section-eyebrow">// 01</p>
+      <h2 class="docs-h2">Quick start</h2>
+
+      <h3 class="docs-h3">▸ curl</h3>
+<pre class="codeblock"><code><span class="c-mute">$</span> curl <span class="c-str">https://api.phantom.codes/v1/chat/completions</span> \
+    -H <span class="c-str">"Authorization: Bearer YOUR_PHANTOM_KEY"</span> \
+    -H <span class="c-str">"Content-Type: application/json"</span> \
+    -d <span class="c-str">'{
+      "model": "phantom/qwen-2.5-7b-instruct",
+      "messages": [{"role":"user","content":"Hello"}]
+    }'</span></code></pre>
+
+      <h3 class="docs-h3">▸ Python</h3>
+<pre class="codeblock"><code><span class="c-kw">from</span> openai <span class="c-kw">import</span> OpenAI
+
+client = OpenAI(
+    api_key=<span class="c-str">"YOUR_PHANTOM_KEY"</span>,
+    base_url=<span class="c-str">"https://api.phantom.codes/v1"</span>,
+)
+
+r = client.chat.completions.create(
+    model=<span class="c-str">"phantom/kimi-k2.6"</span>,
+    messages=[{<span class="c-str">"role"</span>: <span class="c-str">"user"</span>, <span class="c-str">"content"</span>: <span class="c-str">"Hello"</span>}],
+)
+print(r.choices[<span class="c-num">0</span>].message.content)</code></pre>
+
+      <h3 class="docs-h3">▸ Node</h3>
+<pre class="codeblock"><code><span class="c-kw">import</span> OpenAI <span class="c-kw">from</span> <span class="c-str">"openai"</span>;
+
+<span class="c-kw">const</span> client = <span class="c-kw">new</span> OpenAI({
+  apiKey: <span class="c-str">"YOUR_PHANTOM_KEY"</span>,
+  baseURL: <span class="c-str">"https://api.phantom.codes/v1"</span>,
+});
+
+<span class="c-kw">const</span> r = <span class="c-kw">await</span> client.chat.completions.create({
+  model: <span class="c-str">"phantom/gpt-oss-120b"</span>,
+  messages: [{ role: <span class="c-str">"user"</span>, content: <span class="c-str">"Hello"</span> }],
+});
+console.log(r.choices[<span class="c-num">0</span>].message.content);</code></pre>
+
+      <p class="muted">Need crypto? See <a href="/#pricing">/#pricing</a> for accepted coins and how to acquire them.</p>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── Endpoints ─── -->
+    <section id="endpoints">
+      <p class="section-eyebrow">// 02</p>
+      <h2 class="docs-h2">Endpoints</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>METHOD</th><th>PATH</th><th>AUTH</th><th>PURPOSE</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST</code></td><td><code>/v1/chat/completions</code></td><td>Bearer</td><td>OpenAI-compatible chat. Streams. Vision via <code>phantom/qwen3-vl-30b-a3b-instruct</code> using <code>image_url</code> parts.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/v1/embeddings</code></td><td>Bearer</td><td>OpenAI-compatible embeddings.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/v1/images/generations</code></td><td>Bearer</td><td>Image generation. Flat per-image billing.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/models</code></td><td>none</td><td>List models + live pricing (markup included).</td></tr>
+            <tr><td><code>POST</code></td><td><code>/v1/purchase</code></td><td>none</td><td>Body: <code>{"bundle":"small"}</code> OR <code>{"amount_usd":7.5}</code>.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/purchase/{id}/status</code></td><td>none</td><td>Poll payment. Returns plaintext key once on completion.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/key/balance</code></td><td>Bearer</td><td>Remaining credit + expiry.</td></tr>
+            <tr><td><code>POST</code></td><td><code>/v1/key/rotate</code></td><td>Bearer</td><td>Issue new key, carry credit, deactivate old.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/signature/{id}</code></td><td>Bearer</td><td>Per-response signature. Step 2 of attestation.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/inference-attest</code></td><td>Bearer</td><td>TDX + NVIDIA CC report. Step 3 of attestation.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/health</code></td><td>none</td><td>Liveness.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── Streaming ─── -->
+    <section id="streaming">
+      <p class="section-eyebrow">// 03</p>
+      <h2 class="docs-h2">Streaming</h2>
+      <p>Pass <code>"stream": true</code>. SSE-compatible. Final chunk includes a <code>usage</code> block used for billing. Aborting mid-stream is billed for tokens already generated.</p>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── Image generation ─── -->
+    <section id="images">
+      <p class="section-eyebrow">// 04</p>
+      <h2 class="docs-h2">Image generation</h2>
+      <p>OpenAI-compatible. Flat-rate per image. Upstream URLs live ~1 hour. Download them.</p>
+
+<pre class="codeblock"><code><span class="c-mute">$</span> curl <span class="c-str">https://api.phantom.codes/v1/images/generations</span> \
+    -H <span class="c-str">"Authorization: Bearer YOUR_PHANTOM_KEY"</span> \
+    -H <span class="c-str">"Content-Type: application/json"</span> \
+    -d <span class="c-str">'{
+      "model": "stability/stable-diffusion-3-5-large",
+      "prompt": "A misty cyberpunk alley at dawn",
+      "n": 1,
+      "size": "1024x1024",
+      "quality": "standard"
+    }'</span></code></pre>
+
+      <p>Parameters: <code>model</code>, <code>prompt</code> (max 4000 chars), <code>n</code> (1-10), <code>size</code> (256/512/1024/1536/2048 square), <code>quality</code> (<code>standard</code> | <code>hd</code>), <code>response_format</code> (<code>url</code> | <code>b64_json</code>). Per-model pricing in <code>/v1/models</code> under <code>image_pricing_usd_user</code>.</p>
+
+      <div class="callout">
+        <p class="callout-head">// PRIVACY NOTE</p>
+        <p>All image models are tier <strong>PROXY</strong>. Gateway runs in TDX but the model itself runs on vendor infra (Stability, OpenAI, Recraft, Segmind). They see your prompt content. Phantom hides only your identity.</p>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── Attestation ─── -->
+    <section id="attestation">
+      <p class="section-eyebrow">// 05</p>
+      <h2 class="docs-h2">Attestation</h2>
+      <p>Bind each response to verified TEE hardware in three steps.</p>
+
+      <p><strong>1.</strong> Run any chat completion. Capture <code>response.id</code>.<br>
+      <strong>2.</strong> <code>GET /v1/signature/{id}?model=...</code> → returns <code>signature</code> + <code>signing_address</code>.<br>
+      <strong>3.</strong> <code>GET /v1/inference-attest?model=...&amp;nonce=$(openssl rand -hex 32)&amp;signing_address=...</code> → returns Intel TDX quote + NVIDIA CC payload.</p>
+
+      <p>Verify offline:</p>
+      <ul class="bullet">
+        <li>TDX quote → <code>POST https://cloud-api.phala.com/api/v1/attestations/verify</code></li>
+        <li>NVIDIA payload → <code>POST https://nras.attestation.nvidia.com/v3/attest/gpu</code></li>
+        <li>Signature → recover pubkey, confirm matches <code>signing_address</code></li>
+      </ul>
+      <p>Chain: response → signature → TEE quote.</p>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── Integrations ─── -->
+    <section id="integrations">
+      <p class="section-eyebrow">// 06</p>
+      <h2 class="docs-h2">Integrations</h2>
+      <p>Anything that takes <code>base_url</code> + <code>api_key</code> works. Set:</p>
+<pre class="codeblock"><code><span class="c-mute">$</span> export OPENAI_BASE_URL=<span class="c-str">https://api.phantom.codes/v1</span>
+<span class="c-mute">$</span> export OPENAI_API_KEY=<span class="c-str">sk-your-phantom-key</span></code></pre>
+      <p>Picks up automatically in: LangChain, LlamaIndex, Vercel AI SDK, Pydantic-AI, <code>llm</code>, <code>mods</code>, <code>aichat</code>, <code>shell-gpt</code>, <code>tgpt</code>, <code>chatblade</code>.</p>
+
+      <h3 class="docs-h3">▸ Tool-by-tool config</h3>
+
+      <p><strong>Aider:</strong></p>
+<pre class="codeblock"><code>aider --openai-api-base <span class="c-str">https://api.phantom.codes/v1</span> \
+      --openai-api-key  <span class="c-str">sk-your-phantom-key</span> \
+      --model           <span class="c-str">openai/phantom/kimi-k2.6</span></code></pre>
+
+      <p><strong>OpenHands:</strong></p>
+<pre class="codeblock"><code>export LLM_API_KEY=<span class="c-str">sk-your-phantom-key</span>
+export LLM_BASE_URL=<span class="c-str">https://api.phantom.codes/v1</span>
+export LLM_MODEL=<span class="c-str">openai/phantom/kimi-k2.6</span></code></pre>
+
+      <p><strong>opencode</strong> · <code>~/.config/opencode/opencode.json</code>:</p>
+<pre class="codeblock"><code>{
+  <span class="c-key">"provider"</span>: {
+    <span class="c-key">"phantom"</span>: {
+      <span class="c-key">"npm"</span>: <span class="c-str">"@ai-sdk/openai-compatible"</span>,
+      <span class="c-key">"options"</span>: {
+        <span class="c-key">"baseURL"</span>: <span class="c-str">"https://api.phantom.codes/v1"</span>,
+        <span class="c-key">"apiKey"</span>: <span class="c-str">"{env:PHANTOM_API_KEY}"</span>
+      },
+      <span class="c-key">"models"</span>: {
+        <span class="c-str">"phantom/kimi-k2.6"</span>: {<span class="c-key">"name"</span>: <span class="c-str">"Kimi K2.6"</span>}
+      }
+    }
+  }
+}</code></pre>
+
+      <p><strong>Continue.dev</strong> · <code>~/.continue/config.json</code>:</p>
+<pre class="codeblock"><code>{
+  <span class="c-key">"models"</span>: [{
+    <span class="c-key">"title"</span>:    <span class="c-str">"Phantom Kimi"</span>,
+    <span class="c-key">"provider"</span>: <span class="c-str">"openai"</span>,
+    <span class="c-key">"model"</span>:    <span class="c-str">"phantom/kimi-k2.6"</span>,
+    <span class="c-key">"apiKey"</span>:   <span class="c-str">"sk-your-phantom-key"</span>,
+    <span class="c-key">"apiBase"</span>:  <span class="c-str">"https://api.phantom.codes/v1"</span>
+  }]
+}</code></pre>
+
+      <p><strong>Cline / Cursor / OpenWebUI:</strong> pick "OpenAI Compatible" in settings. Base URL = <code>https://api.phantom.codes/v1</code>, API Key = your <code>sk-...</code>, Model = any from <code>/v1/models</code>.</p>
+
+      <div class="callout">
+        <p class="callout-head">// FUNCTION-CALLING</p>
+        <p>For agents that lean on tools, pick a capable model: <code>phantom/kimi-k2.6</code>, <code>phantom/glm-5.1</code> (strong), <code>phantom/glm-4.7-flash</code>, <code>phantom/gpt-oss-120b</code> (decent).</p>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── Rate limits ─── -->
+    <section id="rate-limits">
+      <p class="section-eyebrow">// 07</p>
+      <h2 class="docs-h2">Rate limits</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ENDPOINT</th><th>PER-KEY</th><th>PER-IP</th></tr></thead>
+          <tbody>
+            <tr><td><code>/v1/chat/completions</code></td><td>60/min</td><td>300/min</td></tr>
+            <tr><td><code>/v1/embeddings</code></td><td>60/min</td><td>300/min</td></tr>
+            <tr><td><code>/v1/images/generations</code></td><td>30/min</td><td>60/min</td></tr>
+            <tr><td><code>/v1/key/rotate</code></td><td>5/hour</td><td>30/hour</td></tr>
+            <tr><td><code>/v1/purchase</code></td><td>—</td><td>10/min</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">Hashed in memory. Never logged, never persisted.</p>
+    </section>
+
+    <hr class="rule">
+
+    <!-- ─── FAQ ─── -->
+    <section id="faq">
+      <p class="section-eyebrow">// 08</p>
+      <h2 class="docs-h2">FAQ</h2>
+
+      <div class="faq">
+        <h3 class="docs-h3">▸ I lost my key.</h3>
+        <p>No recovery. Keys are bearer. We store only the SHA-256 hash. By design.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ Refunds?</h3>
+        <p>Crypto refunds need a return address we don't store. Buy small first.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ Can you see my prompts?</h3>
+        <p>In flight, the proxy holds the prompt in RAM. Not logged, not persisted. Hosting provider could in principle dump memory. See <a href="/#trust">trust boundaries</a>.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ How long does payment take?</h3>
+        <p>Monero blocks land ~2 min. Confirmations scale with size: small 2 (~4 min), medium 4 (~8 min), large 6 (~12 min), whale 10 (~20 min). Custom uses same tier rule by credit size. Key drops on next status poll.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ Which coin?</h3>
+        <p>XMR for max privacy. BTC / ETH / USDT / USDC / LTC / SOL / DOGE if XMR isn't convenient. Phantom hides your identity either way; non-XMR txs sit on a public ledger forever.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ Why no /v1/usage history?</h3>
+        <p>Exposing it would let attackers enumerate when a key is active. <code>/v1/key/balance</code> gives the only thing you need: remaining credit.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ How does this compare to OpenAI / Anthropic / Phala direct?</h3>
+        <div class="table-wrap" style="margin-top:.5rem;">
+          <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+            <tr style="border-bottom: 1px solid #333;">
+              <th style="text-align: left; padding: 0.3rem;">vendor</th>
+              <th style="text-align: left; padding: 0.3rem;">account</th>
+              <th style="text-align: left; padding: 0.3rem;">payment</th>
+              <th style="text-align: left; padding: 0.3rem;">logs prompts</th>
+              <th style="text-align: left; padding: 0.3rem;">TEE</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:.3rem;">OpenAI / Anthropic / Google</td><td>required + KYC</td><td>credit card</td><td>yes (30d default)</td><td>no</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:.3rem;">Phala / Redpill direct</td><td>email account</td><td>card / crypto</td><td>no</td><td>yes</td></tr>
+            <tr><td style="padding:.3rem;"><strong>Phantom</strong></td><td><strong>none</strong></td><td><strong>any major crypto</strong></td><td><strong>no</strong></td><td><strong>yes</strong></td></tr>
+          </table>
+        </div>
+        <p style="margin-top: 0.6rem;">Phantom adds a ~30% markup vs Phala direct for the no-account, no-card, no-IP-log layer.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ What happens at $0 credit?</h3>
+        <p>HTTP 402 "insufficient credit or expired key". Buy a new bundle or top up.</p>
+      </div>
+      <div class="faq">
+        <h3 class="docs-h3">▸ Contact / abuse?</h3>
+        <p>Encrypted only. PGP key at <a href="/pgp.txt">/pgp.txt</a> (fingerprint <code><YOUR-PGP-FINGERPRINT></code>).</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="foot-row">
+    <span class="brand-foot">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      PHANTOM
+    </span>
+    <span class="muted">no cookies · no analytics · no third-party assets</span>
+  </div>
+  <div class="foot-row foot-links">
+    <a href="/">home</a>
+    <a href="/#trust">trust</a>
+    <a href="/health">status</a>
+    <a href="/terms.html">terms</a>
+    <a href="/pgp.txt">pgp</a>
+    <a href="http://<your-onion-here.onion>/" rel="noreferrer">tor mirror ↗</a>
+  </div>
+</footer>
+
+<script>
+// Wire a "copy" button onto every <pre class="codeblock"> on the page.
+(() => {
+  const blocks = document.querySelectorAll("pre.codeblock");
+  blocks.forEach((pre) => {
+    if (pre.dataset.copyWired) return;
+    pre.dataset.copyWired = "1";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "block-copy";
+    btn.setAttribute("aria-label", "Copy snippet to clipboard");
+    btn.textContent = "copy";
+    btn.addEventListener("click", () => {
+      const code = pre.querySelector("code") || pre;
+      const text = code.textContent || "";
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = "copied ✓";
+        btn.classList.add("ok");
+        setTimeout(() => {
+          btn.textContent = "copy";
+          btn.classList.remove("ok");
+        }, 1500);
+      }).catch(() => {
+        btn.textContent = "failed";
+        setTimeout(() => (btn.textContent = "copy"), 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+})();
+</script>
+
+</body>
+</html>

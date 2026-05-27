@@ -1,0 +1,35 @@
+#cloud-config
+# Phantom VPS bootstrap -- runs once at first boot.
+# Creates 'arc' user with NOPASSWD sudo + SSH key auth, disables password SSH,
+# enables droplet-agent. setup-vps.sh handles the rest after.
+
+users:
+  - default
+  - name: arc
+    groups: [sudo, users]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 REPLACE_WITH_YOUR_SSH_PUBLIC_KEY
+
+package_update: true
+package_upgrade: true
+packages:
+  - mosh
+  - rsync
+  - htop
+  - curl
+  - vim
+  - jq
+  - ufw
+
+ssh_pwauth: false
+disable_root: false
+
+runcmd:
+  - [systemctl, enable, --now, droplet-agent]
+  - [systemctl, status, droplet-agent, --no-pager]
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - systemctl restart sshd
+  - echo "phantom bootstrap complete on $(date -u)" >> /var/log/phantom-bootstrap.log

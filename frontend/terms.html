@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0a0a0c">
+<title>PHANTOM // terms</title>
+<meta name="description" content="Phantom terms of service, acceptable use policy, and privacy commitments.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://phantom.codes/terms.html">
+<meta property="og:title" content="PHANTOM // terms">
+<meta property="og:description" content="Terms of service, AUP, and privacy commitments grounded in code, not policy.">
+<meta property="og:image" content="https://phantom.codes/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PHANTOM // terms">
+<meta name="twitter:description" content="Terms of service, AUP, and privacy commitments grounded in code.">
+<meta name="twitter:image" content="https://phantom.codes/og.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="canonical" href="https://phantom.codes/terms.html">
+<link rel="stylesheet" href="/style.css?v=8">
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div class="scanlines" aria-hidden="true"></div>
+
+<nav class="topbar">
+  <a href="/" class="brand" aria-label="Phantom home">
+    <svg class="logo-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z"
+            fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"/>
+      <rect x="6.5" y="10.5" width="3.5" height="1.2" fill="currentColor"/>
+      <rect x="14" y="10.5" width="3.5" height="1.2" fill="currentColor"/>
+      <path d="M10 15 L14 15" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+    <span class="brand-text">PHANTOM</span>
+  </a>
+  <div class="navlinks">
+    <a href="/#pricing">pricing</a>
+    <a href="/#models">models</a>
+    <a href="/#trust">trust</a>
+    <a href="/docs.html">docs</a>
+  </div>
+</nav>
+
+<main id="main-content" style="max-width: 760px; margin: 2rem auto; padding: 0 1.2rem; line-height: 1.55;">
+
+  <h1>Terms of service</h1>
+  <p class="muted">Last updated: 2026-05-26. Plain English. Read it.</p>
+
+  <h2 id="service">1. What we are</h2>
+  <p>Phantom is an anonymous proxy to TEE-attested AI inference. You pay in cryptocurrency. You receive an API key. The key burns down as you spend it. We forward your requests to Phala Confidential AI (Intel TDX + NVIDIA Confidential Computing). We do not store the contents of your prompts or completions.</p>
+  <p>Phantom is operated by an individual operator, not a registered company. The service is provided as-is, with no contractual relationship beyond these terms.</p>
+
+  <h2 id="payment">2. Payment, credit, refunds</h2>
+  <ul>
+    <li><strong>Crypto only.</strong> Pay in XMR, BTC, ETH, USDT (TRC20 / ERC20 / BSC), USDC (Ethereum / Solana), LTC, SOL, or DOGE. Payments routed through NowPayments (PSP). They mint a per-invoice address and convert to XMR for the operator's payout.</li>
+    <li><strong>Per-coin minimums apply.</strong> NowPayments enforces minimum-amount thresholds that vary by coin (often $5–$25 USD-equivalent). Phantom's minimum purchase is $10. If your selected coin's minimum is higher, pick a cheaper-network coin.</li>
+    <li><strong>Credit is non-refundable.</strong> Once your key is issued, the credit balance is locked to that key. We do not store return addresses. We cannot send funds back even if we wanted to.</li>
+    <li><strong>Partial payments expire.</strong> If you send less than the invoice amount, NowPayments marks the order partially paid; phantom treats this as expired and does not issue a key.</li>
+    <li><strong>Wrong-asset payments require manual review.</strong> If you send the wrong coin or wrong network, the order may not auto-complete. Contact via PGP (see footer) with the payment ID.</li>
+    <li><strong>Key issued exactly once.</strong> If you lose the API key after we display it, recovery is impossible by design. We store only the SHA-256 hash.</li>
+    <li><strong>Validity windows.</strong> Each key expires after the bundle's validity period (small/medium: 90 days, large: 180, whale: 365, custom: 90). Unspent credit at expiry is forfeit.</li>
+  </ul>
+
+  <h2 id="aup">3. Acceptable use</h2>
+  <p>You may use Phantom for any purpose lawful in your jurisdiction. You may not use it for:</p>
+  <ul>
+    <li>Generating, soliciting, or distributing sexual content involving minors (CSAM).</li>
+    <li>Targeted harassment, stalking, or doxxing of specific individuals.</li>
+    <li>Generating content used to commit financial fraud (phishing kits, impersonation of real persons or businesses for fraud).</li>
+    <li>Material designed to plan or facilitate violence against specific persons or groups.</li>
+    <li>Activity prohibited by U.S. export controls (e.g., weapons of mass destruction, ITAR-controlled defense articles).</li>
+    <li>Automated scraping that violates the target site's terms (the inference layer doesn't see this, but you accept legal responsibility).</li>
+  </ul>
+  <p>We do not read prompts. Enforcement is reactive: if a credible report reaches us, we may revoke the offending key. We have no way to refund the remaining balance on a revoked key.</p>
+  <p>Some models in our catalog are intentionally uncensored (Venice Uncensored 24B). They do not refuse requests on content-policy grounds. You remain responsible for the lawfulness of your use.</p>
+
+  <h2 id="privacy">4. Privacy commitments</h2>
+  <p>These are the commitments we make in code, not just policy. Inspect the operator-published source if you want to verify.</p>
+  <ul>
+    <li><strong>No IP logs.</strong> Caddy access logs are discarded. Uvicorn access logs are disabled. Rate-limit buckets key off a SHA-256 hash of the API key or client IP, kept in memory only, never persisted.</li>
+    <li><strong>No prompt or completion logs.</strong> Our database stores token counts only, never request bodies, never response bodies.</li>
+    <li><strong>No account.</strong> We collect no email, name, phone, billing address, country, or other personal identifier.</li>
+    <li><strong>Encrypted database at rest.</strong> SQLCipher (AES-256). Passphrase loaded from tmpfs at boot, never written to persistent disk.</li>
+    <li><strong>Hashed keys.</strong> Plaintext API keys leave our server exactly once at issuance. We store only SHA-256(key).</li>
+    <li><strong>Body whitelist.</strong> Only a strict set of fields is forwarded to Phala. Identifying fields (user, metadata, etc.) are dropped before forwarding.</li>
+    <li><strong>Payment routing.</strong> Payments flow through NowPayments (PSP). They mint a per-invoice deposit address, collect funds, and forward XMR to the operator's cold wallet. NowPayments KYCs the operator, not the buyer. Buyer-side chain privacy depends on the pay coin: XMR is opaque both ways; BTC/ETH/USDT/USDC are publicly traceable on their own ledgers regardless of phantom's posture.</li>
+  </ul>
+  <p>Things we do <em>not</em> control:</p>
+  <ul>
+    <li>Phala's TEE inference receives the cleaned prompt body. Phala's attested binary is open and can be verified per request via <code>/v1/inference-attest</code>.</li>
+    <li>NowPayments logs your pay tx + IP at checkout (per their privacy policy). They do not share buyer identity with phantom; phantom receives only order-id + payment-status via webhook.</li>
+    <li>Your network path to <code>api.phantom.codes</code> is visible to your ISP unless you use Tor or a trusted VPN.</li>
+  </ul>
+
+  <h2 id="trust">5. Trust boundaries</h2>
+  <p>Phantom's privacy posture has four tiers. Things hardware + code can prove. Things our code refuses to do. Code-level commitments that depend on the source. And real trade-offs we can't fully control. Honesty on all four.</p>
+
+  <div class="trust-grid" style="margin: 1.25rem 0;">
+    <div class="trust-card trust-ok trust-lead">
+      <span class="badge-tag">// CRYPTOGRAPHIC</span>
+      <p class="trust-tagline">Backed by hardware + code, not promises.</p>
+      <ul>
+        <li><strong>TEE inference.</strong> Phala (Intel TDX + NVIDIA CC). Verify per-request via <code>/v1/inference-attest</code>.</li>
+        <li><strong>Per-invoice payment address.</strong> NowPayments mints a fresh address per order. XMR payers stay opaque on-chain. Transparent chains (BTC/ETH/USDT) are traceable on their own ledger.</li>
+        <li><strong>SHA-256 key storage.</strong> Plaintext shown once. Recovery impossible.</li>
+        <li><strong>SQLCipher AES-256.</strong> DB encrypted at rest. Passphrase manual per boot.</li>
+        <li><strong>Tor hidden service.</strong> Same API, no exit node required.</li>
+      </ul>
+    </div>
+
+    <div class="trust-card trust-warn">
+      <span class="badge-tag">// CODE-LEVEL</span>
+      <p class="trust-sub muted">verifiable in the published source, not externally enforced</p>
+      <ul>
+        <li>No prompt, completion, or token-content logging.</li>
+        <li>No IP, user-agent, or request-header logging.</li>
+        <li>No PII. No emails. No identifiers.</li>
+        <li>Rate-limit keys hashed; never persisted.</li>
+      </ul>
+    </div>
+
+    <div class="trust-card trust-deny">
+      <span class="badge-tag">// WHAT WE REFUSE TO BE</span>
+      <p class="trust-sub muted">things phantom will never become</p>
+      <ul>
+        <li><strong>Custodial wallet.</strong> Keys are bearer.</li>
+        <li><strong>Identity provider.</strong> No recovery, no email support.</li>
+        <li><strong>Refund desk.</strong> Start with the $10 bundle.</li>
+        <li><strong>Logging service.</strong> No data to help debug.</li>
+      </ul>
+    </div>
+
+    <div class="trust-card trust-danger">
+      <span class="badge-tag">// REAL TRADE-OFFS</span>
+      <p class="trust-sub muted">limits of running on the public web</p>
+      <ul>
+        <li>Proxy is a VPS. Prompts pass through RAM plaintext between you and Phala. Host could in principle dump memory.</li>
+        <li>Provider could MITM TLS. Verify cert via CT logs.</li>
+        <li>Operator identifiable via VPS contract. Customers stay anonymous.</li>
+        <li>Payment routed via NowPayments (PSP). They see your pay tx + IP. They do NOT share buyer identity with phantom. Phantom only receives order-id + payment-status webhooks. NowPayments KYCs the operator.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="warranty">6. No warranty, limited liability</h2>
+  <p>Service is provided as-is. No uptime guarantee. No availability SLA. No guarantee that any specific model remains in the catalog. Operator may discontinue the service at any time. Any unspent credit at discontinuation is forfeit.</p>
+  <p>To the extent permitted by law, operator's total liability to you under these terms is capped at the unspent credit balance on your API key at the time of the claim.</p>
+
+  <h2 id="changes">7. Changes</h2>
+  <p>These terms may change. Existing keys continue under the terms in effect at issuance for the duration of the validity period. Material changes will be noted on this page with an updated date at the top.</p>
+
+  <h2 id="contact">8. Contact</h2>
+  <p>Encrypted contact only. PGP public key published at <a href="/pgp.txt">/pgp.txt</a> (fingerprint <code><YOUR-PGP-FINGERPRINT></code>). Send abuse reports or operational issues encrypted to this key. We don't maintain plaintext support channels because they would create customer-identifying logs.</p>
+
+  <p class="muted" style="margin-top: 2.5rem;">&lt;&lt; <a href="/">back to home</a></p>
+
+</main>
+
+<footer>
+  <div class="foot-row">
+    <span class="brand-foot">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      PHANTOM
+    </span>
+    <span class="muted">no cookies · no analytics · no third-party assets</span>
+  </div>
+  <div class="foot-row foot-links">
+    <a href="/docs.html">docs</a>
+    <a href="/#trust">trust</a>
+    <a href="/health">status</a>
+    <a href="/terms.html">terms</a>
+    <a href="/pgp.txt">pgp</a>
+    <a href="http://<your-onion-here.onion>/" rel="noreferrer">tor mirror ↗</a>
+  </div>
+</footer>
+
+</body>
+</html>

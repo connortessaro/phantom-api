@@ -1,0 +1,53 @@
+[Unit]
+Description=Phantom API
+After=network-online.target tor.service monero-wallet-rpc.service
+Wants=monero-wallet-rpc.service
+Wants=network-online.target
+ConditionPathExists=/run/phantom/phantom-secrets.env
+
+[Service]
+Type=simple
+User=phantom
+Group=phantom
+WorkingDirectory=/opt/phantom-api
+EnvironmentFile=/opt/phantom-api/.env
+EnvironmentFile=/run/phantom/phantom-secrets.env
+ExecStartPre=/bin/sh -c 'test -s /run/phantom/phantom-secrets.env'
+ExecStart=/opt/phantom-api/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --no-access-log --no-server-header
+# Do NOT shred secrets file here; phantom-poller needs to read it on (re)start.
+# Operator shreds manually after both services confirmed up:  sudo shred -u /run/phantom/phantom-secrets.env
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=null
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+ReadWritePaths=/opt/phantom-api/data /run/phantom
+CapabilityBoundingSet=
+AmbientCapabilities=
+# Hide other processes' /proc entries from the phantom uid. Limits what a
+# compromised uvicorn worker can introspect about the wallet RPC + poller
+# (most importantly the wallet's argv, which carries WALLET_RPC_PASSWORD).
+# Requires systemd >= 247.
+ProtectProc=invisible
+ProcSubset=pid
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+.env
+.env.local
+*.passphrase
+data/
+*.db
+*.db-wal
+*.db-shm
+__pycache__/
+*.pyc
+venv/
+.venv/
+notes/phase-0-output/
+.DS_Store
+TODO.md
+todo-*.md
+.firecrawl/
+
+# local screenshot/debug artifacts (playwright runs)
+.playwright-mcp/
+phantom-models-*.png
+phantom-tools-*.png
+models-page-*.png
+audit-*.png

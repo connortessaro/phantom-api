@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0a0a0c">
+<title>PHANTOM // anonymous AI inference</title>
+<meta name="description" content="The AI API that can't read you. Pay any major crypto. Get a key. Curated open-weight models in hardware-attested TEEs. No accounts. No logs.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://phantom.codes/">
+<meta property="og:title" content="PHANTOM // anonymous AI inference">
+<meta property="og:description" content="Pay XMR, BTC, ETH, USDT, USDC. Get a key. Curated open-weight models in hardware-attested TEEs. No accounts, no logs.">
+<meta property="og:image" content="https://phantom.codes/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PHANTOM // anonymous AI inference">
+<meta name="twitter:description" content="Pay any major crypto. Get a key. Curated open-weight models in TEEs. No accounts, no logs.">
+<meta name="twitter:image" content="https://phantom.codes/og.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="canonical" href="https://phantom.codes/">
+<link rel="stylesheet" href="/style.css?v=8">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Phantom API",
+  "url": "https://phantom.codes/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Cross-platform (HTTP API)",
+  "description": "Anonymous AI inference proxy. Pay any major crypto (XMR for max privacy), get an OpenAI-compatible API key. Hardware-attested TEE inference. No accounts, no logs.",
+  "offers": [
+    {"@type": "Offer", "name": "Starter bundle",    "price": "10",  "priceCurrency": "USD"},
+    {"@type": "Offer", "name": "Standard bundle",   "price": "50",  "priceCurrency": "USD"},
+    {"@type": "Offer", "name": "Pro bundle",        "price": "200", "priceCurrency": "USD"},
+    {"@type": "Offer", "name": "Enterprise bundle", "price": "500", "priceCurrency": "USD"}
+  ],
+  "featureList": [
+    "OpenAI-compatible API",
+    "Multi-crypto payment (XMR / BTC / ETH / USDT / USDC / LTC / SOL / DOGE)",
+    "Hardware-attested TEE inference (Intel TDX + NVIDIA Confidential Computing)",
+    "No accounts, no logs",
+    "SQLCipher-encrypted credential store",
+    "Tor hidden service mirror"
+  ]
+}
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<!-- Scanline overlay -->
+<div class="scanlines" aria-hidden="true"></div>
+
+<!-- ─── Top bar ─── -->
+<nav class="topbar">
+  <a href="/" class="brand" aria-label="Phantom home">
+    <!-- inline SVG logo: hexagonal mask with slot eyes -->
+    <svg class="logo-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z"
+            fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"/>
+      <rect x="6.5" y="10.5" width="3.5" height="1.2" fill="currentColor"/>
+      <rect x="14" y="10.5" width="3.5" height="1.2" fill="currentColor"/>
+      <path d="M10 15 L14 15" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+    <span class="brand-text">PHANTOM</span>
+  </a>
+  <div class="navlinks">
+    <a href="#pricing">pricing</a>
+    <a href="/models.html">models</a>
+    <a href="#trust">trust</a>
+    <a href="/docs.html">docs</a>
+  </div>
+</nav>
+
+<main id="main-content">
+<!-- ─── Hero ─── -->
+<section class="hero">
+  <hr class="rule top">
+
+  <div class="prompt-line">
+    <span class="prompt-glyph">▌</span>
+    <span class="prompt-text">phantom@anon:~$</span>
+    <span class="caret">_</span>
+  </div>
+
+  <h1 class="hero-title">
+    THE AI API<br>
+    <span class="hero-emph">THAT CAN'T<br>READ YOU.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Pay any major crypto. Get an OpenAI-compatible API key. <span id="hero-stat-tee">46</span>+ TEE-attested models, 90+ total catalog. No account. No email. No logs.
+  </p>
+
+  <div class="hero-cta">
+    <a href="#pricing" class="btn btn-primary">&gt;&gt; BUY CREDIT</a>
+    <a href="/docs.html" class="btn btn-ghost">read docs ↗</a>
+  </div>
+  <p class="hero-price muted" style="margin:.5rem 0 0; font-size:.82rem;">
+    Starts at $10. 90-day validity. No subscription.
+  </p>
+
+  <p class="hero-noxmr muted">
+    XMR for max privacy. BTC, ETH, USDT, USDC, LTC, SOL, DOGE accepted. <a href="/docs.html#acquire-xmr">No crypto yet? 5-min guide ↗</a>
+  </p>
+
+  <!-- Live proof strip — populated by purchase.js once /v1/models loads -->
+  <div class="hero-proof-strip" id="hero-proof-strip" aria-live="polite">
+    <a class="proof-stat" href="/docs.html#attestation">▸ verify any response →</a>
+  </div>
+
+  <!-- Terminal preview -->
+  <div class="terminal">
+    <div class="term-head">
+      <span class="term-glyph">●</span><span class="term-glyph">●</span><span class="term-glyph">●</span>
+      <span class="term-title">~/inference.sh</span>
+    </div>
+<pre class="term-body"><span class="c-mute"># anonymous inference via TEE-attested endpoint</span>
+<span class="c-mute">$</span> curl <span class="c-key">https://api.phantom.codes/v1/chat/completions</span> \
+    -H <span class="c-str">"Authorization: Bearer sk-A1xZ9k7eF..."</span> \
+    -d <span class="c-str">'{"model":"phantom/kimi-k2.6",
+        "messages":[{"role":"user","content":"hello"}]}'</span>
+
+<span class="c-mute"># response, TEE-signed, leaves no trace</span>
+{
+  <span class="c-key">"id"</span>: <span class="c-str">"chatcmpl-h3K9d..."</span>,
+  <span class="c-key">"choices"</span>: [{
+    <span class="c-key">"message"</span>: {
+      <span class="c-key">"role"</span>: <span class="c-str">"assistant"</span>,
+      <span class="c-key">"content"</span>: <span class="c-str">"Hello. How can I help?"</span>
+    }
+  }],
+  <span class="c-key">"usage"</span>: { <span class="c-key">"prompt_tokens"</span>: <span class="c-num">4</span>, <span class="c-key">"completion_tokens"</span>: <span class="c-num">7</span> }
+}
+<span class="c-ok">▌ ATTESTATION  OK  · TDX quote verified · NVIDIA CC verified</span></pre>
+  </div>
+
+  <hr class="rule">
+</section>
+
+<!-- ─── Comparison strip ─── -->
+<section class="compare-strip">
+  <p class="section-eyebrow">// HOW IT STACKS UP</p>
+  <div class="compare-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>OpenAI / Anthropic / Google</th>
+          <th>Phala (direct)</th>
+          <th class="compare-self">Phantom</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Account</th>
+          <td>required + KYC</td>
+          <td>email</td>
+          <td class="compare-self"><strong>none</strong></td>
+        </tr>
+        <tr>
+          <th>Payment</th>
+          <td>credit card</td>
+          <td>card / crypto</td>
+          <td class="compare-self"><strong>any major crypto</strong></td>
+        </tr>
+        <tr>
+          <th>Logs prompts</th>
+          <td>yes (30d default)</td>
+          <td>no</td>
+          <td class="compare-self"><strong>no</strong></td>
+        </tr>
+        <tr>
+          <th>Logs IP</th>
+          <td>yes</td>
+          <td>yes</td>
+          <td class="compare-self"><strong>no</strong></td>
+        </tr>
+        <tr>
+          <th>Hardware-attested</th>
+          <td>no</td>
+          <td>per request</td>
+          <td class="compare-self"><strong>per request</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted compare-foot">~30% markup vs Phala direct in exchange for the no-account, no-card, no-IP-log layer. Need anonymity? Pay it. Don't need it? Use Phala direct.</p>
+  </div>
+</section>
+
+<!-- ─── Feature grid ─── -->
+<section class="features">
+  <p class="section-eyebrow">// RULES WE DON'T BREAK</p>
+  <div class="feat-grid">
+    <div class="feat">
+      <span class="feat-num">01</span>
+      <h3>Hardware-enforced privacy</h3>
+      <p>Inference runs inside Intel TDX + NVIDIA Confidential Computing. Verify per-request via <code>/v1/inference-attest</code>. Math, not promises.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-num">02</span>
+      <h3>Two strings, zero rewrites</h3>
+      <p>Change <code>baseUrl</code> + <code>apiKey</code>. Works with opencode, Cline, Aider, OpenHands, Continue, OpenWebUI, openai-python, openai-node.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-num">03</span>
+      <h3>Pay any crypto, stay anonymous</h3>
+      <p>No email. No card. No KYC. Pay XMR for max privacy, or BTC, ETH, USDT, USDC, LTC, SOL, DOGE.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How it works ─── -->
+<section class="howit">
+  <p class="section-eyebrow">// HOW IT WORKS</p>
+  <h2 class="section-h2">pay. point. <em>run.</em></h2>
+
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">01 ▸</span>
+      <h3>Pay any crypto</h3>
+      <p>Pick a bundle or any amount <strong>$10–$1000</strong>. Redirect to NowPayments-hosted checkout. Pay in XMR (max privacy), BTC, ETH, USDT, USDC, LTC, SOL, DOGE from your wallet.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">02 ▸</span>
+      <h3>Get an API key</h3>
+      <p>Wait <strong>2–4 minutes</strong> for small bundles. Up to <strong>20 minutes</strong> for $500+ (more confirmations = harder to reverse). Your <code>sk-…</code> key drops in the browser exactly once. We store only its SHA-256 hash. Recovery is impossible. By design.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">03 ▸</span>
+      <h3>Point and ship</h3>
+      <p>Set <code>base_url</code>, pass the <code>Bearer</code> key, send your first chat. Inference runs inside a hardware enclave (Intel TDX + NVIDIA CC). Verify per request via <code>/v1/inference-attest</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Pricing ─── -->
+<section id="pricing">
+  <p class="section-eyebrow">// PRICING</p>
+  <h2 class="section-h2">credit, in <em>USD</em>. paid in <em>crypto</em>.</h2>
+  <p class="muted-center">No crypto yet? <a href="/docs.html#acquire-xmr">5-min guide ↗</a></p>
+
+  <div class="bundles">
+    <div class="bundle">
+      <p class="b-label">SMALL</p>
+      <p class="b-price">$10</p>
+      <p class="b-meta">$10 credit · 90d</p>
+      <p class="b-tokens muted">≈ 25M tokens GPT-OSS 120B<br>≈ 2.5M tokens Kimi K2.6</p>
+      <button data-buy='{"bundle":"small"}'>&gt; BUY</button>
+    </div>
+    <div class="bundle popular">
+      <span class="ribbon">// POPULAR</span>
+      <p class="b-label">MEDIUM</p>
+      <p class="b-price">$50</p>
+      <p class="b-meta"><strong>$55</strong> credit · 90d · +10%</p>
+      <p class="b-tokens muted">≈ 140M tokens GPT-OSS 120B<br>≈ 14M tokens Kimi K2.6</p>
+      <button data-buy='{"bundle":"medium"}'>&gt; BUY</button>
+    </div>
+    <div class="bundle">
+      <p class="b-label">LARGE</p>
+      <p class="b-price">$200</p>
+      <p class="b-meta"><strong>$230</strong> credit · 180d · +15%</p>
+      <p class="b-tokens muted">≈ 600M tokens GPT-OSS 120B<br>≈ 60M tokens Kimi K2.6</p>
+      <button data-buy='{"bundle":"large"}'>&gt; BUY</button>
+    </div>
+    <div class="bundle">
+      <p class="b-label">WHALE</p>
+      <p class="b-price">$500</p>
+      <p class="b-meta"><strong>$600</strong> credit · 365d · +20%</p>
+      <p class="b-tokens muted">≈ 1.5B tokens GPT-OSS 120B<br>≈ 160M tokens Kimi K2.6</p>
+      <button data-buy='{"bundle":"whale"}'>&gt; BUY</button>
+    </div>
+  </div>
+  <p class="muted-center" style="margin-top:1rem; font-size:.8rem;">
+    Token estimates are balanced input/output. Live rates: <a href="/models.html">model catalog</a>.
+  </p>
+
+  <div class="custom-amount">
+    <h3>// CUSTOM AMOUNT</h3>
+    <p class="muted">$10 minimum, $1000 maximum. 1:1 credit. 90-day validity.</p>
+    <div class="custom-row">
+      <span class="cur">$</span>
+      <input type="number" id="custom-input" min="10" max="1000" step="1" value="25" inputmode="decimal" autocomplete="off" aria-label="Custom amount in USD" />
+      <span class="cur">USD</span>
+      <button id="custom-buy">&gt; BUY CUSTOM</button>
+    </div>
+  </div>
+
+  <div class="claim-lookup">
+    <h3>// ALREADY PAID? CLAIM YOUR KEY</h3>
+    <p class="muted">Paste the payment ID from your purchase. Key drops once payment confirms.</p>
+    <div class="custom-row">
+      <input type="text" id="claim-input" placeholder="payment id" autocomplete="off" spellcheck="false" aria-label="Payment ID" />
+      <button id="claim-go">&gt; CLAIM KEY</button>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Coin chooser modal (hybrid rail). Opens first when buyer clicks BUY. ─── -->
+<div id="rail-overlay" class="modal-overlay" hidden aria-hidden="true">
+<section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rail-heading">
+  <button class="modal-close" id="rail-close" aria-label="Close">✕</button>
+  <p class="section-eyebrow">// CHOOSE COIN</p>
+  <h2 class="section-h2" id="rail-heading">how do you want to pay?</h2>
+  <p class="muted-center" id="rail-summary"></p>
+  <div class="rail-grid">
+    <button type="button" class="rail-card rail-xmr" id="rail-xmr-btn">
+      <span class="rail-tag">// RECOMMENDED · 0% SURCHARGE</span>
+      <h3 class="rail-name">Pay in XMR</h3>
+      <p class="rail-meta">Sticker price. <strong id="rail-xmr-price">—</strong> for <strong id="rail-xmr-credit">—</strong> credit.</p>
+      <ul class="rail-points">
+        <li>Best privacy: on-chain opaque both ways</li>
+        <li>Zero surcharge for privacy-first buyers</li>
+        <li>No coin swap, no conversion loss</li>
+      </ul>
+      <span class="rail-cta">&gt;&gt; PAY XMR</span>
+    </button>
+    <button type="button" class="rail-card rail-multi" id="rail-multi-btn">
+      <span class="rail-tag rail-tag-muted">// MULTI-CRYPTO · <span id="rail-multi-pct">+5%</span></span>
+      <h3 class="rail-name">Other crypto</h3>
+      <p class="rail-meta">Pay <strong id="rail-multi-price">—</strong> for <strong id="rail-multi-credit">—</strong> credit. Hosted checkout.</p>
+      <ul class="rail-points">
+        <li>BTC, ETH, USDT, USDC, LTC, SOL, DOGE accepted</li>
+        <li>Surcharge covers conversion to XMR + processing</li>
+        <li>Want zero surcharge? Swap to XMR yourself first.</li>
+      </ul>
+      <span class="rail-cta">&gt;&gt; PAY OTHER ↗</span>
+    </button>
+  </div>
+  <p class="muted-center" style="margin-top:1.25rem; font-size:.82rem;">
+    Same credit. Same key. XMR direct saves operator fees and lets us keep prices flat.
+  </p>
+</section>
+</div>
+
+<!-- ─── Purchase modal overlay ─── -->
+<div id="purchase-overlay" class="modal-overlay" hidden aria-hidden="true">
+<section id="purchase" class="modal-card" role="dialog" aria-modal="true" aria-labelledby="purchase-heading">
+  <button class="modal-close" id="purchase-close" aria-label="Close">✕</button>
+  <p class="section-eyebrow">// AWAITING PAYMENT</p>
+  <h2 class="section-h2" id="purchase-heading">Send payment</h2>
+  <p id="payment-summary" class="payment-summary"></p>
+
+  <div class="payment-card">
+    <!-- LEFT: QR -->
+    <div class="qr-wrap">
+      <div class="qr-skel" id="qr-skel" aria-hidden="true">
+        <div class="qr-spinner"></div>
+        <span class="qr-skel-label">generating QR…</span>
+      </div>
+      <img id="qr" alt="Payment QR" width="240" height="240" />
+      <a id="qr-deeplink" class="qr-deeplink" href="#" hidden>open in wallet ↗</a>
+    </div>
+
+    <!-- RIGHT: payment details -->
+    <div class="payment-details">
+      <!-- AMOUNT — most prominent -->
+      <label class="pd-label">// AMOUNT TO SEND (XMR)</label>
+      <div class="copyrow amountrow">
+        <code id="xmr-amount" class="amount-big"></code>
+        <button class="copybtn" data-copy="xmr-amount">copy</button>
+      </div>
+      <p class="muted" style="margin:.3rem 0 0; font-size:.78rem;">
+        ▸ Tip: scan the QR with Cake or Feather. Wallet auto-fills the amount. Network fee comes out of your wallet, paid automatically.
+      </p>
+
+      <!-- ADDRESS -->
+      <label class="pd-label">// TO ADDRESS</label>
+      <div class="copyrow">
+        <code id="xmr-address"></code>
+        <button class="copybtn" data-copy="xmr-address">copy</button>
+      </div>
+
+      <!-- PAYMENT ID — recovery handle if tab closes -->
+      <label class="pd-label">// PAYMENT ID (save before closing tab)</label>
+      <div class="copyrow">
+        <code id="payment-id"></code>
+        <button class="copybtn" data-copy="payment-id">copy</button>
+      </div>
+
+      <!-- STATUS with pulsing indicator -->
+      <div class="status-block">
+        <div class="status-dot" id="status-dot" data-state="pending"></div>
+        <div class="status-text">
+          <p id="payment-status" class="status-msg">waiting for transaction…</p>
+          <p id="payment-countdown" class="status-meta"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="payment-tip muted">
+    ▸ Send the <strong>exact</strong> amount shown. Underpayment will not be accepted. Overpayment is donated to the operator.
+  </p>
+
+  <p id="tab-warning" class="warn" style="margin:.6rem 0 0; padding:.6rem .8rem; border:1px solid var(--xmr,#ff6600); background:rgba(255,102,0,0.07); font-size:.85rem;">
+    ▸ <strong>Keep this tab open.</strong> Your API key drops here once payment confirms (~2–20 min, scaled by bundle size). If you must close, copy the <strong>PAYMENT ID</strong> above. You can recover the key later by polling <code>/v1/purchase/&lt;id&gt;/status</code> (see <a href="/docs.html#purchase">docs</a>). Lose the payment ID and the key cannot be recovered.
+  </p>
+
+  <div id="api-key-box" hidden>
+    <h3>// YOUR API KEY</h3>
+    <p class="warn"><strong>SHOWN ONCE.</strong> Copy now. Cannot be recovered. Anyone with this key can spend your credit.</p>
+    <div class="copyrow keyrow">
+      <code id="api-key-value"></code>
+      <button class="copybtn" data-copy="api-key-value">copy</button>
+    </div>
+    <p class="muted">→ see <a href="/docs.html">docs</a> for OpenAI-client setup.</p>
+  </div>
+</section>
+</div><!-- /purchase-overlay -->
+
+<!-- ─── Models ─── -->
+<section id="models">
+  <p class="section-eyebrow">// CATALOG</p>
+  <h2 class="section-h2">pick by <em>what you want to do.</em></h2>
+  <p class="muted-center">90+ models. <span class="tier tier-tee">TEE</span> = prompt invisible to everyone, verifiable per-request. <span class="tier tier-proxy">PROXY</span> = anonymous to vendor but they read content.</p>
+
+  <div class="usecase-preview">
+    <a href="/models.html#code" class="uc-preview-chip"><span class="uc-icon">▸</span> Coding agent</a>
+    <a href="/models.html#reason" class="uc-preview-chip"><span class="uc-icon">◆</span> Reason + math</a>
+    <a href="/models.html#vision" class="uc-preview-chip"><span class="uc-icon">◉</span> Vision</a>
+    <a href="/models.html#image" class="uc-preview-chip"><span class="uc-icon">✦</span> Image gen</a>
+    <a href="/models.html#embed" class="uc-preview-chip"><span class="uc-icon">▦</span> Embed</a>
+    <a href="/models.html#uncensored" class="uc-preview-chip"><span class="uc-icon">○</span> Uncensored</a>
+    <a href="/models.html#cheap" class="uc-preview-chip"><span class="uc-icon">↓</span> Cheapest</a>
+    <a href="/models.html#frontier" class="uc-preview-chip"><span class="uc-icon">✕</span> Frontier (proxy)</a>
+  </div>
+
+  <p class="muted-center" style="margin-top:1.5rem;">
+    <a href="/models.html"><strong>▸ browse full catalog ↗</strong></a>
+  </p>
+</section>
+
+<!-- ─── Integrations ─── -->
+<section class="integrations">
+  <p class="section-eyebrow">// COMPATIBLE TOOLS</p>
+  <p class="muted-center" style="margin-top:.5rem;">OpenAI-compatible. <a href="/docs.html#integrations">full configs ↗</a></p>
+  <!-- Top row: SDKs (most used). Larger cards.
+       Bottom rows: agents + UIs. Dense secondary tier. -->
+  <div class="tool-row tool-row-primary">
+    <div class="tool tool-lg"><span class="tool-name">openai-python</span><span class="tool-kind">official SDK · drop-in base_url swap</span></div>
+    <div class="tool tool-lg"><span class="tool-name">openai-node</span><span class="tool-kind">official SDK · drop-in baseURL swap</span></div>
+    <div class="tool tool-lg"><span class="tool-name">LangChain</span><span class="tool-kind">framework · honors OPENAI_BASE_URL</span></div>
+  </div>
+  <p class="muted-center" style="margin-top:1rem; font-size:.85rem;">
+    plus opencode, Cline, Continue.dev, Aider, OpenHands, OpenWebUI — <a href="/docs.html#integrations">all configs ↗</a>
+  </p>
+</section>
+
+<!-- ─── Trust boundaries (CRYPTOGRAPHIC only; details on /terms.html#trust) ─── -->
+<section id="trust">
+  <p class="section-eyebrow">// WHAT'S GUARANTEED</p>
+  <h2 class="section-h2">hardware enforces it. <em>code shows it. math proves it.</em></h2>
+
+  <!-- .onion callout for Tor-native customers -->
+  <div class="onion-callout" style="border:1px solid var(--xmr-dim); padding:1rem 1.25rem; margin:0 auto 1.75rem; max-width:840px; background:rgba(255,102,0,0.04);">
+    <p class="section-eyebrow" style="margin:0 0 .35rem;">// TOR HIDDEN SERVICE</p>
+    <p style="margin:0; font-size:.92rem; word-break:break-all;">
+      <code style="color:var(--xmr);">http://<your-onion-here.onion></code>
+    </p>
+    <p class="muted" style="margin:.4rem 0 0; font-size:.82rem;">
+      Open in Tor Browser. No clearnet exit. No DNS lookup. Same API, same keys.
+    </p>
+  </div>
+
+  <div class="trust-grid">
+    <div class="trust-card trust-ok trust-lead">
+      <span class="badge-tag">// CRYPTOGRAPHIC</span>
+      <p class="trust-tagline">Three guarantees you can't get from OpenAI.</p>
+      <ul>
+        <li><strong>Per-invoice payment address.</strong> Fresh address per order. XMR payers opaque on-chain.</li>
+        <li><strong>SHA-256 key storage.</strong> Plaintext shown once. Recovery impossible by design.</li>
+        <li><strong>SQLCipher AES-256.</strong> DB encrypted at rest. Passphrase manual per boot, never on disk.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="muted-center" style="margin-top:1.5rem; font-size:.9rem;">
+    Three things we can't fully control + four things we refuse to be.
+    <a href="/terms.html#trust"><strong>Read the full trust boundaries →</strong></a>
+  </p>
+</section>
+
+<!-- ─── Final CTA ─── -->
+<section class="final-cta">
+  <hr class="rule">
+  <h2 class="final-h">stop hoping they don't log it.<br><span class="ml-emph">verify they can't.</span></h2>
+  <p class="muted">No refunds. No recovery. <strong>Start with the $10 bundle.</strong> Test the whole flow before scaling.</p>
+  <a href="#pricing" class="btn btn-primary big">&gt;&gt; BUY CREDIT</a>
+  <hr class="rule">
+</section>
+</main>
+
+<footer>
+  <div class="foot-row">
+    <span class="brand-foot">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      PHANTOM
+    </span>
+    <span class="muted">no cookies · no analytics · no third-party assets</span>
+  </div>
+  <div class="foot-row foot-links">
+    <a href="/docs.html">docs</a>
+    <a href="#trust">trust</a>
+    <a href="/health" title="JSON health endpoint">status (json)</a>
+    <a href="/terms.html">terms</a>
+    <a href="/terms.html#aup">aup</a>
+    <a href="/terms.html#privacy">privacy</a>
+    <a href="/pgp.txt">pgp</a>
+  </div>
+</footer>
+
+<script src="/purchase.js"></script>
+</body>
+</html>

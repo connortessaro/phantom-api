@@ -1,0 +1,11 @@
+# Append to existing torrc:
+#   Linux:   /etc/tor/torrc
+#   macOS:   /opt/homebrew/etc/tor/torrc  (Apple Silicon)  or  /usr/local/etc/tor/torrc
+#   Windows: %APPDATA%\tor\torrc
+
+HiddenServiceDir /var/lib/tor/phantom-wallet/
+HiddenServiceVersion 3
+HiddenServicePort 18083 127.0.0.1:18083
+
+# After restart, read onion address:
+#   sudo cat /var/lib/tor/phantom-wallet/hostname

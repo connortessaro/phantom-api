@@ -1,0 +1,46 @@
+[Unit]
+Description=Phantom payment poller
+After=phantom-api.service tor.service monero-wallet-rpc.service
+Requires=phantom-api.service monero-wallet-rpc.service
+
+[Service]
+Type=simple
+User=phantom
+Group=phantom
+WorkingDirectory=/opt/phantom-api
+EnvironmentFile=/opt/phantom-api/.env
+EnvironmentFile=/run/phantom/phantom-secrets.env
+ExecStart=/opt/phantom-api/venv/bin/python /opt/phantom-api/scripts/poll-payments.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+ReadWritePaths=/opt/phantom-api/data /run/phantom
+CapabilityBoundingSet=
+AmbientCapabilities=
+# Hide other processes' /proc entries from the phantom uid — same defense as
+# phantom-api.service. Requires systemd >= 247.
+ProtectProc=invisible
+ProcSubset=pid
+
+[Install]
+WantedBy=multi-user.target

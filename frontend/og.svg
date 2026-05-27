@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#000"/>
+    </linearGradient>
+    <linearGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ff6600" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ff6600" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="600" cy="200" r="380" fill="url(#halo)"/>
+
+  <!-- big hex logo, centered upper -->
+  <g transform="translate(490, 70) scale(9.2)">
+    <path d="M12 1.5 L22.6 7.5 L22.6 16.5 L12 22.5 L1.4 16.5 L1.4 7.5 Z"
+          fill="none" stroke="#ff6600" stroke-width="1.4" stroke-linejoin="miter"/>
+    <rect x="6.5" y="10.5" width="3.5" height="1.2" fill="#ff6600"/>
+    <rect x="14" y="10.5" width="3.5" height="1.2" fill="#ff6600"/>
+    <path d="M10 15 L14 15" stroke="#ff6600" stroke-width="1.2"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="600" y="380"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="96" font-weight="700" letter-spacing="14"
+        text-anchor="middle" fill="#ff6600">PHANTOM</text>
+
+  <!-- tagline -->
+  <text x="600" y="445"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="32" font-weight="500"
+        text-anchor="middle" fill="#e0e0e0">the AI API that can't read you</text>
+
+  <!-- bullet row -->
+  <text x="600" y="510"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="22" font-weight="400" letter-spacing="2"
+        text-anchor="middle" fill="#aaaaaa">pay monero . no account . no logs . TEE-attested</text>
+
+  <!-- footer hostname -->
+  <text x="600" y="580"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="20" font-weight="400" letter-spacing="3"
+        text-anchor="middle" fill="#ff6600">phantom.codes</text>
+</svg>

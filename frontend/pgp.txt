@@ -1,0 +1,11 @@
+Replace this file with your own PGP public key.
+
+Generate one:
+  gpg --full-generate-key          # RSA 4096 or Ed25519
+  gpg --armor --export YOUR_KEY_ID > frontend/pgp.txt
+
+Publish the fingerprint in frontend/terms.html and frontend/docs.html
+where <YOUR-PGP-FINGERPRINT> appears.
+
+The PGP key is how users send encrypted abuse reports and contact the operator
+without creating plaintext logs.
